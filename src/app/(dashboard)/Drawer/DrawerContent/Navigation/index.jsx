@@ -9,7 +9,8 @@ import menuItem from "../../../../menu-items";
 // ==============================|| DRAWER CONTENT - NAVIGATION ||============================== //
 
 export default function Navigation() {
-  const navGroups = menuItem.items.map((item) => {
+  const data = menuItem();
+  const navGroups = data.map((item) => {
     switch (item.type) {
       case "group":
         return <NavGroup key={item.id} item={item} />;

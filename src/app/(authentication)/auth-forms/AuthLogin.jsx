@@ -15,7 +15,7 @@ import InputLabel from "@mui/material/InputLabel";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-
+import Alert from "@mui/material/Alert";
 // third party
 import * as Yup from "yup";
 import { Formik } from "formik";
@@ -26,13 +26,12 @@ import AnimateButton from "../../components/@extended/AnimateButton";
 // assets
 import EyeOutlined from "@ant-design/icons/EyeOutlined";
 import EyeInvisibleOutlined from "@ant-design/icons/EyeInvisibleOutlined";
-import FirebaseSocial from "./FirebaseSocial";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { LoginAuth } from "../../../actions/loginAuth";
 // ============================|| JWT - LOGIN ||============================ //
 
-export default function AuthLogin({ isDemo = false }) {
+export default function AuthLogin() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
 
@@ -55,22 +54,46 @@ export default function AuthLogin({ isDemo = false }) {
         }}
         validationSchema={Yup.object().shape({
           email: Yup.string()
-            .email("Must be a valid email")
+            .test(
+              "is-valid-email",
+              "Must be a valid normal email or special email format",
+              (value) => {
+                const normalEmailPattern =
+                  /^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+\.[a-zA-Z]{2,}$/;
+                const specialEmailPattern =
+                  /^staff\/[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+\.[a-zA-Z]{2,}\/[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+\.[a-zA-Z]{2,}$/;
+                return (
+                  normalEmailPattern.test(value) ||
+                  specialEmailPattern.test(value)
+                );
+              }
+            )
             .max(255)
             .required("Email is required"),
           password: Yup.string().max(255).required("Password is required"),
         })}
-        onSubmit={(values, { setSubmitting, setErrors }) => {
+        onSubmit={async (values, { setSubmitting, setErrors }) => {
           console.log("Email:", values.email);
           console.log("Password:", values.password);
 
-          if (values.email === "test@gmail.com" && values.password === "1234") {
-            router.push("/");
-          } else {
-            setErrors({ submit: "Invalid email or password" });
+          try {
+            const validate = await LoginAuth(values);
+            if (validate?.error) {
+              setErrors({ submit: validate?.message });
+            }
+          } catch (error) {
+            console.log("ERROR", error);
           }
 
-          setSubmitting(false);
+          // console.log(validate.error);
+          // if (validate.error) {
+          //   setErrors({ submit: validate.error });
+          //   setSubmitting(false);
+          // } else {
+          //   console.log("done");
+
+          //   setSubmitting(true);
+          // }
         }}
       >
         {({
@@ -171,7 +194,7 @@ export default function AuthLogin({ isDemo = false }) {
                       <Typography variant="h6">Keep me sign in</Typography>
                     }
                   />
-                  <Link variant="h6" href="#" color="text.primary">
+                  <Link variant="h6" href="/reset" color="text.primary">
                     Forgot Password?
                   </Link>
                 </Stack>
@@ -195,14 +218,6 @@ export default function AuthLogin({ isDemo = false }) {
                     Login
                   </Button>
                 </AnimateButton>
-              </Grid>
-              <Grid item xs={12}>
-                <Divider>
-                  <Typography variant="caption"> Login with</Typography>
-                </Divider>
-              </Grid>
-              <Grid item xs={12}>
-                <FirebaseSocial />
               </Grid>
             </Grid>
           </form>

@@ -1,19 +1,19 @@
 import { configureStore } from "@reduxjs/toolkit";
 import firebaseDataReducer from "../features/firebaseSlice";
- 
+import firestoreMultipleDataReducer from "../features/firestoreMultipleData";
 import listReducer from "../features/list";
-
 import addToOrderReducer from "../features/addToOrderSlice";
 import activeFooterItemReducer from "../features/activeFooterCategory";
 import searchReducer from "../features/searchSlice";
 import botToOrderReducer from "../features/botToOrderSlice";
 import botChatReducer from "../features/botChatSlice";
 import afterOrderReducer from "../features/afterOrderSlice";
- 
+
 import adminRestaurantInfoReducer from "../features/adminRestaurantInfoSlice";
 const store = configureStore({
   reducer: {
     // Add other reducers here if you have more slices
+    firestoreMultipleData: firestoreMultipleDataReducer,
     firebaseData: firebaseDataReducer,
     listData: listReducer,
     addToOrderData: addToOrderReducer,
@@ -22,7 +22,6 @@ const store = configureStore({
     botToOrderData: botToOrderReducer,
     botChat: botChatReducer,
     afterOrderData: afterOrderReducer,
- 
     adminRestaurantInfo: adminRestaurantInfoReducer,
   },
 });

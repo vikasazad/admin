@@ -24,7 +24,7 @@ export default function HeaderContent() {
       {downLG && <Box sx={{ width: '100%', ml: 1 }} />}
  
       {/* <IconButton
-=======
+
       <IconButton
  
         component={Link}
@@ -38,7 +38,7 @@ export default function HeaderContent() {
         <GithubOutlined />
  
       </IconButton> */}
-=======
+
       {/* </IconButton> */}
  
 

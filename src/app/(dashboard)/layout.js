@@ -22,9 +22,12 @@ import store from "../app/store";
 import { Provider } from "react-redux";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Toaster } from "react-hot-toast";
+import { SessionProvider } from "next-auth/react";
+
 // ==============================|| MAIN LAYOUT ||============================== //
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({ children, session }) {
   const theme = createTheme();
   const { menuMasterLoading } = useGetMenuMaster();
   const downXL = useMediaQuery(theme.breakpoints.down("xl"));
@@ -40,32 +43,35 @@ export default function DashboardLayout({ children }) {
     <html lang="en">
       <body>
         <Provider store={store}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <AppRouterCacheProvider>
-              <ThemeCustomization>
-                <ScrollTop>
-                  <Box sx={{ display: "flex", width: "100%" }}>
-                    <Header />
-                    <Drawer />
-                    <Box
-                      component="main"
-                      sx={{
-                        width: "calc(100% - 260px)",
-                        flexGrow: 1,
-                        p: { xs: 2, sm: 3 },
-                        height: "100vh",
-                        overflowY: "auto",
-                      }}
-                    >
-                      <Toolbar />
-                      <Breadcrumbs navigation={navigation} title />
-                      {children}
+          <SessionProvider session={session}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <AppRouterCacheProvider>
+                <ThemeCustomization>
+                  <ScrollTop>
+                    <Box sx={{ display: "flex", width: "100%" }}>
+                      <Header />
+                      <Drawer />
+                      <Box
+                        component="main"
+                        sx={{
+                          width: "calc(100% - 260px)",
+                          flexGrow: 1,
+                          p: { xs: 2, sm: 3 },
+                          height: "100vh",
+                          overflowY: "auto",
+                        }}
+                      >
+                        <Toolbar />
+                        <Breadcrumbs navigation={navigation} title />
+                        {children}
+                        <Toaster />
+                      </Box>
                     </Box>
-                  </Box>
-                </ScrollTop>
-              </ThemeCustomization>
-            </AppRouterCacheProvider>
-          </LocalizationProvider>
+                  </ScrollTop>
+                </ThemeCustomization>
+              </AppRouterCacheProvider>
+            </LocalizationProvider>
+          </SessionProvider>
         </Provider>
       </body>
     </html>

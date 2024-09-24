@@ -31,6 +31,7 @@ import SettingOutlined from "@ant-design/icons/SettingOutlined";
 import UserOutlined from "@ant-design/icons/UserOutlined";
 import avatar1 from "../../../../assets/images/users/avatar-1.png";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 // tab panel wrapper
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -170,7 +171,7 @@ export default function Profile() {
                           </Stack>
                         </Stack>
                       </Grid>
-                      <Grid item onClick={() => router.push("/login")}>
+                      <Grid item onClick={() => signOut()}>
                         <Tooltip title="Logout">
                           <IconButton
                             size="large"

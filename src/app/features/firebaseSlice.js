@@ -1,14 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { app } from "../DB/firebase";
-
-const firestore = getFirestore(app);
+import { db } from "../DB/firebase";
 
 // Define an async thunk to fetch data from Firestore
 export const fetchDataFromFirestore = createAsyncThunk(
   "firebaseData/fetchDataFromFirestore",
   async () => {
-    const docRef = doc(firestore, "restaurant", "1");
+    const docRef = doc(db, "restaurant", "1");
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {

@@ -1,13 +1,14 @@
 // material-ui
+"use client";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-
+import Divider from "@mui/material/Divider";
 // project import
 import AuthWrapper from "../AuthWrapper";
 import AuthRegister from "../auth-forms/AuthRegister";
 import Link from "next/link";
-
+import SocialButton from "../../components/SocialButton/page";
 // ================================|| REGISTER ||================================ //
 
 export default function Register() {
@@ -32,6 +33,25 @@ export default function Register() {
               </Typography>
             </Link>
           </Stack>
+        </Grid>
+
+        <Grid item xs={12}>
+          <SocialButton />
+        </Grid>
+        <Grid item xs={12}>
+          <Divider>
+            <Typography
+              variant="caption"
+              sx={{
+                backgroundColor: "#1677ff",
+                color: "white",
+                p: 0.5,
+                borderRadius: "5px",
+              }}
+            >
+              Sign up with
+            </Typography>
+          </Divider>
         </Grid>
         <Grid item xs={12}>
           <AuthRegister />

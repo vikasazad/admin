@@ -1,8 +1,5 @@
- 
 "use client";
 import React, { useState, useEffect } from "react";
-
- 
 
 import dynamic from "next/dynamic";
 import {
@@ -53,11 +50,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  ListItemButton ,
+  ListItemButton,
 } from "@mui/material";
-
-
- 
 
 // project import
 import MainCard from "../../components/MainCard";
@@ -72,8 +66,9 @@ import OrdersTable from "./OrdersTable";
 import GiftOutlined from "@ant-design/icons/GiftOutlined";
 import MessageOutlined from "@ant-design/icons/MessageOutlined";
 import SettingOutlined from "@ant-design/icons/SettingOutlined";
- 
+
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import FolderIcon from "@mui/icons-material/Folder";
 import HomeWorkOutlinedIcon from "@mui/icons-material/HomeWorkOutlined";
 import LocalCafeOutlinedIcon from "@mui/icons-material/LocalCafeOutlined";
@@ -85,25 +80,27 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import Popover from "@mui/material/Popover";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
- 
+import { useDispatch, useSelector } from "react-redux";
+
 import avatar1 from "../../assets/images/users/avatar-1.png";
 import avatar2 from "../../assets/images/users/avatar-2.png";
 import avatar3 from "../../assets/images/users/avatar-3.png";
 import avatar4 from "../../assets/images/users/avatar-4.png";
- 
+
 import { borderRadius } from "@mui/system";
+import { get7daysData, getData } from "../../DB/dbFunctions";
+import { useSession } from "next-auth/react";
+import { fetchFirestoreData } from "../../features/firestoreMultipleData";
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
- 
-// avatar style
+
 const avatarSX = {
   width: 36,
   height: 36,
   fontSize: "1rem",
 };
 
-// action style
 const actionSX = {
   mt: 0.75,
   ml: 1,
@@ -113,7 +110,6 @@ const actionSX = {
   transform: "none",
 };
 
- 
 const colors = [
   "#fdcb69",
   "#52c41a",
@@ -122,7 +118,6 @@ const colors = [
   "#8c13c2",
   "#13225e",
 ];
-
 
 const dataYear = {
   Rooms: {
@@ -640,8 +635,8 @@ const dataDay = {
   },
 };
 
-const data = {
-  Rooms: {
+const datadata = {
+  rooms: {
     Executive: [
       0, 62000, 58000, 61000, 63000, 64000, 65000, 66000, 67000, 68000, 69000,
       70000,
@@ -659,7 +654,7 @@ const data = {
       66000,
     ],
   },
-  Food: {
+  food: {
     InRoom: [
       30000, 32000, 31000, 33000, 34000, 35000, 36000, 37000, 38000, 39000,
       40000, 41000,
@@ -669,7 +664,7 @@ const data = {
       50000, 51000,
     ],
   },
-  Services: {
+  services: {
     Spa: [
       20000, 21000, 22000, 23000, 24000, 25000, 26000, 27000, 28000, 29000,
       30000, 31000,
@@ -687,42 +682,110 @@ const data = {
       35000, 36000,
     ],
   },
-  Issues: {
+  issues: {
     Rooms: [32, 15, 23, 46, 18, 27, 38, 22, 62, 23, 31, 25],
     Services: [14, 9, 12, 11, 10, 13, 8, 15, 17, 19, 18, 16],
     Food: [6, 5, 4, 7, 3, 8, 5, 9, 10, 6, 7, 4],
   },
 };
 
-export default function DashboardDefault() {
+export default function DashboardDefault({ user, data, table }) {
+  const dispatch = useDispatch();
   const [filter, setFilter] = useState("");
+  const [chartFilter, setChartFilter] = useState("");
   const [error, setError] = useState("");
+  const [errorChart, setErrorChart] = useState("");
   const initialTime = dayjs().subtract(6, "month");
   const [customFilter, setCustomFilter] = useState({
     startDate: dayjs(),
     endDate: dayjs(),
   });
+  const [customChartFilter, setCustomChartFilter] = useState({
+    startDate: dayjs(),
+    endDate: dayjs(),
+  });
   const [value, setValue] = useState("");
-  const [selectedChart, setSelectedChart] = useState("Rooms");
+  const [selectedChart, setSelectedChart] = useState("rooms");
   const [stepSize, setStepSize] = useState();
   const [chartData, setChartData] = useState([]);
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [chartLabel, setChartLabel] = useState([]);
+  const [chartOverview, setChartOverview] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorElChart, setAnchorElChart] = useState(null);
+  const firestoreMultipleData = useSelector(
+    (state) => state.firestoreMultipleData
+  );
+  const chartFilterOpen = Boolean(anchorElChart);
+  const chartFilterid = chartFilterOpen ? "simple-popover" : undefined;
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
-  useEffect(() => {
-    const selectedCategoryData = data.Rooms;
-    const initialSeries = Object.keys(selectedCategoryData).map(
-      (key, index) => ({
-        name: key,
-        type: "line",
-        data: selectedCategoryData[key],
-        color: colors[index % colors.length], // Cycle through the colors array
-      })
-    );
 
-    setChartData(initialSeries); // Set the initial series data in state
-    setStepSize(calculateStepSize(selectedCategoryData));
-  }, []);
+  useEffect(() => {
+    dispatch(
+      fetchFirestoreData({ email: user.email, subCollection: "analytics" })
+    );
+  }, [dispatch, user]);
+
+  // useEffect(() => {
+  //   const fetchLast7DaysData = async () => {
+  //     const email = "user@example.com"; // Replace with dynamic email if needed
+  //     const subCollection = "analytics/rooms/categories/executive/days";
+
+  //     const today = new Date();
+  //     const last7Days = [...Array(7)].map((_, i) => {
+  //       const date = new Date(today);
+  //       date.setDate(today.getDate() - i);
+  //       return date;
+  //     });
+
+  //     // Fetch data for each of the last 7 days
+  //     const earningsData = await Promise.all(
+  //       last7Days.map(async (date) => {
+  //         const day = date.getDate().toString(); // Get day as a string (e.g., "21")
+  //         const data = await getData(email, `${subCollection}/${day}`);
+  //         return data?.totalEarnings || 0; // Return earnings or 0 if no data
+  //       })
+  //     );
+
+  //     const labels = last7Days.map(
+  //       (date) => date.toLocaleDateString("en-GB") // format dd/mm/yyyy
+  //     );
+
+  //     // Set chart data for the last 7 days
+  //     setChartData({
+  //       series: [
+  //         {
+  //           name: "Executive",
+  //           data: earningsData,
+  //         },
+  //       ],
+  //       xAxisLabels: labels,
+  //     });
+  //   };
+
+  //   fetchLast7DaysData();
+  // }, []);
+
+  useEffect(() => {
+    if (firestoreMultipleData?.status === "succeeded") {
+      console.log(firestoreMultipleData.fetchedData.analytics.rooms);
+      console.log("=============", data);
+      const selectedCategoryData = data.rooms;
+      const initialSeries = Object.keys(selectedCategoryData)
+        .filter((key) => !key.includes("Bookings"))
+        .map((key, index) => ({
+          name: key,
+          type: "line",
+          data: selectedCategoryData[key],
+          color: colors[index % colors.length], // Cycle through the colors array
+        }));
+      setChartLabel(data.days);
+      console.log(selectedCategoryData);
+      setChartData(initialSeries); // Set the initial series data in state
+      setChartOverview(calculateTotalEarningsAndEffectivePercentageAll(data));
+      setStepSize(calculateStepSize(selectedCategoryData));
+    }
+  }, [firestoreMultipleData]);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -730,12 +793,63 @@ export default function DashboardDefault() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const handleClickChartFilter = (event) => {
+    setAnchorElChart(event.currentTarget);
+  };
+
+  const handleCloseChartFilter = () => {
+    setAnchorElChart(null);
+  };
+  const handleChartFilter = (filter) => {
+    console.log(filter);
+    if (filter === "Today") {
+      //take starting point as yesterdays totalEarnings and show todaysEarning till this point
+    }
+    if (filter === "Yesterday") {
+      //take starting point as day before yesterdays totalEarnings and show yesterdaysEarning till this point
+    }
+    if (filter === "This Week") {
+      //take starting point as previous week's totalEarnings and show currentweeksEarning till this point
+    }
+    if (filter === "This Month") {
+      //take starting point as previous month's totalEarnings and show currentmonthsEarning till this point
+    }
+    if (filter === "Custom") {
+      // if the length of steps increase above 20 days then change to weekly steps and if the length of weekly steps change from 20 weeks then change to monthly steps
+    }
+    setChartFilter(filter);
+    setAnchorElChart(null);
+  };
   const handleFilter = (filter) => {
     console.log(filter);
     setFilter(filter);
     setAnchorEl(null);
   };
 
+  const handleCustomFilterChart = (date, type) => {
+    const updatedFilter = { ...customChartFilter, [type]: date };
+    const { startDate, endDate } = updatedFilter;
+
+    if (startDate.isSame(endDate)) {
+      setErrorChart("Start date and End date cannot be the same.");
+    } else if (startDate.isAfter(endDate)) {
+      setErrorChart("Start date cannot be greater than End date.");
+    } else if (
+      startDate.isBefore(initialTime) ||
+      endDate.isBefore(initialTime)
+    ) {
+      setErrorChart("Selected dates cannot be earlier than 6 months ago.");
+    } else if (startDate.isAfter(dayjs()) || endDate.isAfter(dayjs())) {
+      setErrorChart("Selected dates cannot be later than today.");
+    } else {
+      setErrorChart("");
+    }
+
+    setCustomChartFilter(updatedFilter);
+
+    // console.log("Start Date:", updatedFilter.startDate.format("MM/DD/YYYY"));
+    // console.log("End Date:", updatedFilter.endDate.format("MM/DD/YYYY"));
+  };
   const handleCustomFilter = (date, type) => {
     const updatedFilter = { ...customFilter, [type]: date };
     const { startDate, endDate } = updatedFilter;
@@ -761,28 +875,124 @@ export default function DashboardDefault() {
     // console.log("End Date:", updatedFilter.endDate.format("MM/DD/YYYY"));
   };
 
-  const calculateStepSize = (categoryData) => {
-    const allValues = Object.values(categoryData).flat(); // Flatten the category data arrays
-    const max = Math.max(...allValues); // Get the maximum value
-    const min = Math.min(...allValues); // Get the minimum value
-    const range = max - min; // Calculate the range
+  const calculateStepSize = (selectedCategoryData) => {
+    const allValues = Object.entries(selectedCategoryData)
+      .filter(([key]) => key !== "days")
+      .flatMap(([_, values]) => values);
 
-    return Math.ceil(range / 10); // Determine step size (10 steps for simplicity)
+    if (allValues.length === 0) return 0;
+
+    const max = Math.max(...allValues);
+    const min = Math.min(...allValues);
+    const range = max - min;
+
+    return Math.ceil(range / 10);
   };
-  const handleTypeClicks = (category) => {
+  const handleTypeClicks = async (category) => {
+    const data = await get7daysData(user.email, "analytics", category);
+    console.log(data);
     setSelectedChart(category);
     const selectedCategoryData = data[category];
-    const series = Object.keys(selectedCategoryData).map((key, index) => {
-      return {
-        name: key,
-        type: "line",
-        data: selectedCategoryData[key],
-        color: colors[index % colors.length],
-      };
-    });
+    const series = Object.keys(selectedCategoryData)
+      .filter((key) => key !== "days")
+      .filter((key) => !key.includes("Bookings"))
+      .map((key, index) => {
+        return {
+          name: key,
+          type: "line",
+          data: selectedCategoryData[key],
+          color: colors[index % colors.length],
+        };
+      });
     console.log("Generated Series:", series);
     setChartData(series);
     setStepSize(calculateStepSize(selectedCategoryData));
+    console.log("DATA", data);
+  };
+
+  const calculateTotalEarningsAndEffectivePercentageAll = (data) => {
+    const result = {};
+
+    for (const [categoryName, subCategories] of Object.entries(data).filter(
+      ([key]) => key !== "days"
+    )) {
+      // console.log(`Processing category: ${categoryName}`);
+
+      let overallTotalEarnings = 0;
+      let totalBookings = 0;
+
+      // Finding the length of daily earnings based on any subcategory that isn't bookings
+      const earningsSubCategory = Object.keys(subCategories).find(
+        (key) => !key.includes("Bookings")
+      );
+      // console.log(`Earnings subcategory found: ${earningsSubCategory}`);
+
+      const dailyEarnings = Array(
+        subCategories[earningsSubCategory].length
+      ).fill(0);
+      // console.log(
+      //   `Initialized dailyEarnings array with length: ${dailyEarnings.length}`
+      // );
+
+      for (const [subCategoryName, values] of Object.entries(subCategories)) {
+        // console.log(`Processing subcategory: ${subCategoryName}`);
+        // console.log(`Values: ${values}`);
+
+        // Separate earnings and bookings
+        if (subCategoryName.includes("Bookings")) {
+          const bookingsSum = values.reduce((sum, value) => sum + value, 0);
+          totalBookings += bookingsSum;
+          // console.log(
+          //   `Added ${bookingsSum} to total bookings. Total bookings: ${totalBookings}`
+          // );
+        } else {
+          const earningsSum = values.reduce((sum, value) => sum + value, 0);
+          overallTotalEarnings += earningsSum;
+          // console.log(
+          //   `Added ${earningsSum} to total earnings. Overall total earnings: ${overallTotalEarnings}`
+          // );
+
+          // Sum up the daily earnings for effective percentage calculation
+          values.forEach((value, index) => {
+            dailyEarnings[index] += value;
+          });
+          // console.log(`Updated dailyEarnings array: ${dailyEarnings}`);
+        }
+      }
+
+      // Adjust for any zero earnings days that cause NaN in the percentage calculation
+      let effectivePercentage = 0;
+      // console.log(`Calculating effective percentage...`);
+
+      for (let i = 1; i < dailyEarnings.length; i++) {
+        if (dailyEarnings[i - 1] !== 0) {
+          const change =
+            ((dailyEarnings[i] - dailyEarnings[i - 1]) / dailyEarnings[i - 1]) *
+            100;
+          effectivePercentage += change;
+          // console.log(`Change from day ${i - 1} to day ${i}: ${change}%`);
+        } else {
+          // console.log(`Skipping day ${i} due to zero earnings on day ${i - 1}`);
+        }
+      }
+
+      const isPositive = effectivePercentage > 0;
+      // console.log(
+      //   // `Effective percentage for ${categoryName}: ${effectivePercentage}`
+      // );
+      // console.log(`Is positive trend: ${isPositive}`);
+
+      // Store the results for this category
+      result[`overallTotalEarnings${categoryName}`] = overallTotalEarnings;
+      result[`effectivePercentage${categoryName}`] = parseFloat(
+        effectivePercentage.toFixed(2)
+      );
+      result[`isPositive${categoryName}`] = isPositive;
+      result[`totalBooking${categoryName}`] = totalBookings;
+    }
+
+    // console.log("Final result:", result);
+    return result;
   };
 
   const line = {
@@ -797,6 +1007,7 @@ export default function DashboardDefault() {
       },
       stroke: {
         curve: "smooth",
+        width: 2,
       },
       plotOptions: {
         bar: {
@@ -818,20 +1029,7 @@ export default function DashboardDefault() {
       fill: {
         type: ["solid"],
       },
-      labels: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      labels: chartLabel,
       markers: {
         size: [4],
         colors: "#fff",
@@ -860,6 +1058,7 @@ export default function DashboardDefault() {
       },
     },
   };
+
   return (
     <>
       <Grid container spacing={2.5}>
@@ -873,7 +1072,7 @@ export default function DashboardDefault() {
                 item
                 xs={12}
                 lg={3}
-                onClick={() => handleTypeClicks("Rooms")}
+                onClick={() => handleTypeClicks("rooms")}
                 sx={{ cursor: "pointer" }}
               >
                 <Card
@@ -881,7 +1080,7 @@ export default function DashboardDefault() {
                   sx={{
                     padding: "20px",
                     backgroundColor:
-                      selectedChart === "Rooms" ? "rgb(245, 245, 245)" : "",
+                      selectedChart === "rooms" ? "rgb(245, 245, 245)" : "",
                   }}
                 >
                   <Grid container spacing={1.25}>
@@ -892,29 +1091,37 @@ export default function DashboardDefault() {
                       >
                         <Typography variant="subtitle1">Rooms</Typography>
                         <Stack direction="row">
-                          <ArrowDropDownIcon
-                            sx={{ color: "rgb(82, 196, 26)" }}
-                          />
+                          {chartOverview.isPositiverooms ? (
+                            <ArrowDropUpIcon
+                              sx={{ color: "rgb(82, 196, 26)" }}
+                            />
+                          ) : (
+                            <ArrowDropDownIcon sx={{ color: "red" }} />
+                          )}
                           <Typography
                             variant="h5"
                             ml={1}
                             sx={{ color: "rgb(140, 140, 140)" }}
                           >
-                            20%
+                            {chartOverview.effectivePercentagerooms}%
                           </Typography>
                         </Stack>
                       </Stack>
                     </Grid>
                     <Grid item xs={12}>
                       <Stack>
-                        <Typography variant="h5">$8898</Typography>
-                        <Stack direction="row">
-                          <Typography variant="h5">5</Typography>
+                        <Typography variant="h5">
+                          &#8377; {chartOverview.overallTotalEarningsrooms}
+                        </Typography>
+                        <Stack direction="row" alignItems="center">
+                          <Typography variant="h5">
+                            {chartOverview.totalBookingrooms}
+                          </Typography>
                           <Typography
                             variant="body1"
                             sx={{ ml: 1, color: "rgb(140, 140, 140)" }}
                           >
-                            invoices
+                            Bookings
                           </Typography>
                         </Stack>
                       </Stack>
@@ -926,7 +1133,7 @@ export default function DashboardDefault() {
                 item
                 xs={12}
                 lg={3}
-                onClick={() => handleTypeClicks("Food")}
+                onClick={() => handleTypeClicks("food")}
                 sx={{ cursor: "pointer" }}
               >
                 <Card
@@ -934,7 +1141,7 @@ export default function DashboardDefault() {
                   sx={{
                     padding: "20px",
                     backgroundColor:
-                      selectedChart === "Food" ? "rgb(245, 245, 245)" : "",
+                      selectedChart === "food" ? "rgb(245, 245, 245)" : "",
                   }}
                 >
                   <Grid container spacing={1.25}>
@@ -945,29 +1152,37 @@ export default function DashboardDefault() {
                       >
                         <Typography variant="subtitle1">Food</Typography>
                         <Stack direction="row">
-                          <ArrowDropDownIcon
-                            sx={{ color: "rgb(82, 196, 26)" }}
-                          />
+                          {chartOverview.isPositivefood ? (
+                            <ArrowDropUpIcon
+                              sx={{ color: "rgb(82, 196, 26)" }}
+                            />
+                          ) : (
+                            <ArrowDropDownIcon sx={{ color: "red" }} />
+                          )}
                           <Typography
                             variant="h5"
                             ml={1}
                             sx={{ color: "rgb(140, 140, 140)" }}
                           >
-                            20%
+                            {chartOverview.effectivePercentagefood}%
                           </Typography>
                         </Stack>
                       </Stack>
                     </Grid>
                     <Grid item xs={12}>
                       <Stack>
-                        <Typography variant="h5">$8898</Typography>
-                        <Stack direction="row">
-                          <Typography variant="h5">5</Typography>
+                        <Typography variant="h5">
+                          &#8377; {chartOverview.overallTotalEarningsfood}
+                        </Typography>
+                        <Stack direction="row" alignItems="center">
+                          <Typography variant="h5">
+                            {chartOverview.totalBookingfood}
+                          </Typography>
                           <Typography
                             variant="body1"
                             sx={{ ml: 1, color: "rgb(140, 140, 140)" }}
                           >
-                            invoices
+                            Orders
                           </Typography>
                         </Stack>
                       </Stack>
@@ -979,7 +1194,7 @@ export default function DashboardDefault() {
                 item
                 xs={12}
                 lg={3}
-                onClick={() => handleTypeClicks("Services")}
+                onClick={() => handleTypeClicks("services")}
                 sx={{ cursor: "pointer" }}
               >
                 <Card
@@ -987,7 +1202,7 @@ export default function DashboardDefault() {
                   sx={{
                     padding: "20px",
                     backgroundColor:
-                      selectedChart === "Services" ? "rgb(245, 245, 245)" : "",
+                      selectedChart === "services" ? "rgb(245, 245, 245)" : "",
                   }}
                 >
                   <Grid container spacing={1.25}>
@@ -998,29 +1213,37 @@ export default function DashboardDefault() {
                       >
                         <Typography variant="subtitle1">Services</Typography>
                         <Stack direction="row">
-                          <ArrowDropDownIcon
-                            sx={{ color: "rgb(82, 196, 26)" }}
-                          />
+                          {chartOverview.isPositiveservices ? (
+                            <ArrowDropUpIcon
+                              sx={{ color: "rgb(82, 196, 26)" }}
+                            />
+                          ) : (
+                            <ArrowDropDownIcon sx={{ color: "red" }} />
+                          )}
                           <Typography
                             variant="h5"
                             ml={1}
                             sx={{ color: "rgb(140, 140, 140)" }}
                           >
-                            20%
+                            {chartOverview.effectivePercentageservices}%
                           </Typography>
                         </Stack>
                       </Stack>
                     </Grid>
                     <Grid item xs={12}>
                       <Stack>
-                        <Typography variant="h5">$8898</Typography>
-                        <Stack direction="row">
-                          <Typography variant="h5">5</Typography>
+                        <Typography variant="h5">
+                          &#8377; {chartOverview.overallTotalEarningsservices}
+                        </Typography>{" "}
+                        <Stack direction="row" alignItems="center">
+                          <Typography variant="h5">
+                            {chartOverview.totalBookingservices}
+                          </Typography>
                           <Typography
                             variant="body1"
                             sx={{ ml: 1, color: "rgb(140, 140, 140)" }}
                           >
-                            invoices
+                            Requests
                           </Typography>
                         </Stack>
                       </Stack>
@@ -1032,7 +1255,7 @@ export default function DashboardDefault() {
                 item
                 xs={12}
                 lg={3}
-                onClick={() => handleTypeClicks("Issues")}
+                onClick={() => handleTypeClicks("issues")}
                 sx={{ cursor: "pointer" }}
               >
                 <Card
@@ -1040,7 +1263,7 @@ export default function DashboardDefault() {
                   sx={{
                     padding: "20px",
                     backgroundColor:
-                      selectedChart === "Issues" ? "rgb(245, 245, 245)" : "",
+                      selectedChart === "issues" ? "rgb(245, 245, 245)" : "",
                   }}
                 >
                   <Grid container spacing={1.25}>
@@ -1051,29 +1274,37 @@ export default function DashboardDefault() {
                       >
                         <Typography variant="subtitle1">Issues</Typography>
                         <Stack direction="row">
-                          <ArrowDropDownIcon
-                            sx={{ color: "rgb(82, 196, 26)" }}
-                          />
+                          {chartOverview.isPositiveissues ? (
+                            <ArrowDropUpIcon
+                              sx={{ color: "rgb(82, 196, 26)" }}
+                            />
+                          ) : (
+                            <ArrowDropDownIcon sx={{ color: "red" }} />
+                          )}
                           <Typography
                             variant="h5"
                             ml={1}
                             sx={{ color: "rgb(140, 140, 140)" }}
                           >
-                            20%
+                            {chartOverview.effectivePercentageissues}%
                           </Typography>
                         </Stack>
                       </Stack>
                     </Grid>
                     <Grid item xs={12}>
                       <Stack>
-                        <Typography variant="h5">$8898</Typography>
+                        <Typography variant="h5">
+                          &#8377; {chartOverview.overallTotalEarningsissues}
+                        </Typography>{" "}
                         <Stack direction="row">
-                          <Typography variant="h5">5</Typography>
+                          <Typography variant="h5" alignItems="center">
+                            {chartOverview.totalBookingissues}
+                          </Typography>
                           <Typography
                             variant="body1"
                             sx={{ ml: 1, color: "rgb(140, 140, 140)" }}
                           >
-                            invoices
+                            Issues
                           </Typography>
                         </Stack>
                       </Stack>
@@ -1082,6 +1313,106 @@ export default function DashboardDefault() {
                 </Card>
               </Grid>
               <Grid item xs={12}>
+                {/* <Stack direction="row" spacing={2}>
+                  <Stack direction="row">
+                    <IconButton>
+                      <FilterListIcon onClick={handleClickChartFilter} />
+                      <Popover
+                        id={chartFilterid}
+                        open={chartFilterOpen}
+                        anchorEl={anchorElChart}
+                        onClose={handleCloseChartFilter}
+                        anchorOrigin={{
+                          vertical: "bottom",
+                          horizontal: "right",
+                        }}
+                      >
+                        <Container sx={{ p: 2 }}>
+                          <Stack sx={{ cursor: "pointer" }}>
+                            <Typography
+                              variant="h6"
+                              sx={{ p: 1 }}
+                              onClick={() => handleChartFilter("today")}
+                            >
+                              Today
+                            </Typography>
+                            <Divider />
+                            <Typography
+                              variant="h6"
+                              sx={{ p: 1 }}
+                              onClick={() => handleChartFilter("Tomorrow")}
+                            >
+                              Yesterday
+                            </Typography>
+                            <Divider />
+                            <Typography
+                              variant="h6"
+                              sx={{ p: 1 }}
+                              onClick={() => handleChartFilter("This Month")}
+                            >
+                              This Month
+                            </Typography>
+                            <Divider />
+                            <Typography
+                              variant="h6"
+                              sx={{ p: 1 }}
+                              onClick={() => handleChartFilter("Custom")}
+                            >
+                              All Time
+                            </Typography>
+                            <Typography
+                              variant="h6"
+                              sx={{ p: 1 }}
+                              onClick={() => handleChartFilter("Custom")}
+                            >
+                              Custom
+                            </Typography>
+                          </Stack>
+                        </Container>
+                      </Popover>
+                    </IconButton>
+                  </Stack>
+                  <Stack>
+                    {chartFilter === "Custom" ? (
+                      <>
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          <DatePicker
+                            label="Start Date"
+                            value={customChartFilter.startDate}
+                            onChange={(newValue) =>
+                              handleCustomFilterChart(newValue, "startDate")
+                            }
+                            minDate={initialTime}
+                            maxDate={dayjs()}
+                          />
+
+                          <Typography variant="subtitle1" sx={{ m: "0 5px" }}>
+                            to
+                          </Typography>
+
+                          <DatePicker
+                            label="End Date"
+                            value={customFilter.endDate}
+                            onChange={(newValue) =>
+                              handleCustomFilter(newValue, "endDate")
+                            }
+                            minDate={initialTime}
+                            maxDate={dayjs()}
+                          />
+                        </div>
+
+                        {errorChart && (
+                          <FormHelperText error id="date-picker-error">
+                            {errorChart}
+                          </FormHelperText>
+                        )}
+                      </>
+                    ) : (
+                      ""
+                    )}
+                  </Stack>
+                </Stack> */}
+
                 <Box>
                   <ReactApexChart
                     options={line.options}
@@ -1097,6 +1428,82 @@ export default function DashboardDefault() {
         </Grid>
 
         <Grid item xs={12} lg={3}>
+          <MainCard sx={{ borderRadius: 1 }}>
+            <Box>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={12} lg={12}>
+                  <Card sx={{ boxShadow: 0 }}>
+                    <Stack>
+                      {Object.keys(table).map((key) =>
+                        ["roomsData", "tablesData"].map((dataKey) => {
+                          const data = table[key][dataKey];
+                          if (data) {
+                            const label =
+                              dataKey
+                                .replace("Data", "")
+                                .charAt(0)
+                                .toUpperCase() +
+                              dataKey.replace("Data", "").slice(1);
+
+                            return (
+                              <div key={dataKey}>
+                                {label === "Tables" && (
+                                  <Divider sx={{ margin: "10px 0" }} />
+                                )}
+                                <Typography variant="h5" sx={{}}>
+                                  {label}
+                                </Typography>
+                                <Divider sx={{ margin: "10px 0" }} />
+                                {Object.keys(data).map((itemKey) => (
+                                  <Stack
+                                    direction="row"
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                    key={itemKey}
+                                    sx={{ margin: "5px 0" }}
+                                  >
+                                    <Typography variant="h6">
+                                      {itemKey.charAt(0).toUpperCase() +
+                                        itemKey.slice(1)}
+                                    </Typography>
+                                    <Typography variant="subtitle1">
+                                      {data[itemKey]}
+                                    </Typography>
+                                  </Stack>
+                                ))}
+                              </div>
+                            );
+                          }
+                          return null;
+                        })
+                      )}
+                    </Stack>
+                  </Card>
+                </Grid>
+                <Grid item xs={12} md={12} lg={12}>
+                  <Card sx={{ boxShadow: 0 }}>
+                    <Stack>
+                      <Typography variant="h5" sx={{}}>
+                        Staff
+                      </Typography>
+                      <Divider sx={{ margin: "10px 0" }} />
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        sx={{ margin: "5px 0" }}
+                      >
+                        <Typography variant="h6">Online</Typography>
+                        <Typography variant="subtitle1">0</Typography>
+                      </Stack>
+                    </Stack>
+                  </Card>
+                </Grid>
+              </Grid>
+            </Box>
+          </MainCard>
+        </Grid>
+        {/* <Grid item xs={12} lg={3}>
           <MainCard sx={{ paddingBottom: 2, borderRadius: 1 }}>
             <Box>
               <Grid container spacing={3}>
@@ -1205,8 +1612,8 @@ export default function DashboardDefault() {
               </Grid>
             </Box>
           </MainCard>
-        </Grid>
-        <Grid item xs={12} md={7} lg={8}>
+        </Grid> */}
+        <Grid item xs={12} md={12} lg={12}>
           <Grid container alignItems="center" justifyContent="space-between">
             <Grid item>
               <Typography variant="h5">Recent Orders</Typography>
@@ -1303,10 +1710,10 @@ export default function DashboardDefault() {
             </Grid>
           </Grid>
           <MainCard sx={{ mt: 2 }} content={false}>
-            <OrdersTable />
+            <OrdersTable data={table} />
           </MainCard>
         </Grid>
-        <Grid item xs={12} md={5} lg={4}>
+        {/* <Grid item xs={12} md={5} lg={4}>
           <Grid container alignItems="center" justifyContent="space-between">
             <Grid item>
               <Typography variant="h5">Analytics Report</Typography>
@@ -1330,7 +1737,7 @@ export default function DashboardDefault() {
             </List>
             <ReportAreaChart />
           </MainCard>
-        </Grid>
+        </Grid> */}
       </Grid>
     </>
   );
@@ -1584,6 +1991,3 @@ export default function DashboardDefault() {
 //     </Grid> */}
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
-
-
- 

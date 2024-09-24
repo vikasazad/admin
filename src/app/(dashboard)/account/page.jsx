@@ -1,58 +1,32 @@
 "use client";
 import React, { useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   Grid,
   TextField,
   Button,
-  Snackbar,
   IconButton,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Typography,
-  Container,
   InputLabel,
-  Select,
-  MenuItem,
-  Chip,
   FormHelperText,
   Box,
   OutlinedInput,
-  FormControl,
-  Tooltip,
-  Zoom,
-  Fab,
   Tabs,
   Tab,
-  TabPanel,
   Divider,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Slide,
   Stack,
-  FormGroup,
-  Checkbox,
-  FormControlLabel,
   InputAdornment,
-  TabContext,
-  TabList,
   Card,
   List,
   ListItemButton,
   ListItemText,
   ListItemAvatar,
+  FormControl,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import Member from "../member/page";
 import MainCard from "../../components/MainCard";
-import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import PermIdentityOutlinedIcon from "@mui/icons-material/PermIdentityOutlined";
 import HttpsOutlinedIcon from "@mui/icons-material/HttpsOutlined";
 import SupervisorAccountOutlinedIcon from "@mui/icons-material/SupervisorAccountOutlined";
@@ -63,6 +37,7 @@ import EyeOutlined from "@ant-design/icons/EyeOutlined";
 import EyeInvisibleOutlined from "@ant-design/icons/EyeInvisibleOutlined";
 import * as Yup from "yup";
 import { Formik } from "formik";
+import { countriesList } from "../../assets/countriesData";
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -87,14 +62,14 @@ function a11yProps(index) {
 }
 
 export default function Account() {
+  const { data: session } = useSession();
+  console.log(session);
   const [value, setValue] = React.useState(0);
   const [showPassword, setShowPassword] = useState({
     oldPassword: false,
     newPassword: false,
     confirmPassword: false,
   });
-  console.log(showPassword)
-  console.log(showPassword.oldPassword)
   const [passwordCriteria, setPasswordCriteria] = useState({
     minLength: false,
     lowercase: false,
@@ -102,6 +77,13 @@ export default function Account() {
     number: false,
     specialChar: false,
   });
+
+  const countryName = () => {
+    const name = countriesList.find(
+      (item) => item.phone === session?.user.countryCode || ""
+    );
+    return name?.label;
+  };
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -163,29 +145,30 @@ export default function Account() {
             <Grid item xs={12}>
               <Formik
                 initialValues={{
-                  firstName: "",
-                  lastName: "",
-                  country: "",
+                  name: session?.user?.name || "",
+                  country: countryName() || "",
                   zipcode: "",
-                  phone: "",
-                  email: "",
+                  countryCode: session?.user?.countryCode || "",
+                  phone: session?.user?.phone || "",
+                  email: session?.user?.email || "",
                   address: "",
                   url: "",
                   submit: null,
                 }}
+                enableReinitialize={true}
                 validationSchema={Yup.object().shape({
-                  firstName: Yup.string()
+                  name: Yup.string()
                     .max(255, "First Name must be at most 255 characters")
                     .required("First Name is required"),
-                  lastName: Yup.string()
-                    .max(255, "Last Name must be at most 255 characters")
-                    .required("Last Name is required"),
                   country: Yup.string()
                     .max(255, "Country must be at most 255 characters")
                     .required("Country is required"),
                   zipcode: Yup.string()
                     .max(255, "Zipcode must be at most 255 characters")
                     .required("Zipcode is required"),
+                  countryCode: Yup.string()
+                    .max(255)
+                    .required("Country Code is required"),
                   phone: Yup.string()
                     .matches(
                       /^[0-9]+$/,
@@ -234,63 +217,29 @@ export default function Account() {
                             {/* First Name Field */}
                             <Grid item xs={12} md={6} lg={6}>
                               <InputLabel
-                                htmlFor="first-name"
+                                htmlFor="name"
                                 sx={{ marginBottom: 1 }}
                               >
-                                First Name
+                                Name
                               </InputLabel>
                               <OutlinedInput
                                 variant="outlined"
-                                id="first-name"
+                                id="name"
                                 type="text"
-                                value={values.firstName}
-                                name="firstName"
+                                value={values.name}
+                                name="name"
                                 onBlur={handleBlur}
                                 onChange={handleChange}
-                                placeholder="Enter first name"
+                                placeholder="Enter name"
                                 fullWidth
-                                error={Boolean(
-                                  touched.firstName && errors.firstName
-                                )}
+                                error={Boolean(touched.name && errors.name)}
                               />
-                              {touched.firstName && errors.firstName && (
+                              {touched.name && errors.name && (
                                 <FormHelperText
                                   error
-                                  id="standard-weight-helper-text-first-name"
+                                  id="standard-weight-helper-text-name"
                                 >
-                                  {errors.firstName}
-                                </FormHelperText>
-                              )}
-                            </Grid>
-
-                            {/* Last Name Field */}
-                            <Grid item xs={12} md={6} lg={6}>
-                              <InputLabel
-                                htmlFor="last-name"
-                                sx={{ marginBottom: 1 }}
-                              >
-                                Last Name
-                              </InputLabel>
-                              <OutlinedInput
-                                variant="outlined"
-                                id="last-name"
-                                type="text"
-                                value={values.lastName}
-                                name="lastName"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                placeholder="Enter last name"
-                                fullWidth
-                                error={Boolean(
-                                  touched.lastName && errors.lastName
-                                )}
-                              />
-                              {touched.lastName && errors.lastName && (
-                                <FormHelperText
-                                  error
-                                  id="standard-weight-helper-text-last-name"
-                                >
-                                  {errors.lastName}
+                                  {errors.name}
                                 </FormHelperText>
                               )}
                             </Grid>
@@ -371,27 +320,64 @@ export default function Account() {
                             </Typography>
                           </Stack>
                           <Divider />
-                          <Grid container spacing={3} p={2}>
+                          <Grid container spacing={1} p={2}>
                             {/* Phone Number Field */}
-                            <Grid item xs={12} md={6} lg={6}>
+                            <Grid item xs={12} md={7} lg={7}>
                               <InputLabel
                                 htmlFor="phone-number"
                                 sx={{ marginBottom: 1 }}
                               >
                                 Phone Number
                               </InputLabel>
-                              <OutlinedInput
-                                variant="outlined"
-                                id="phone-number"
-                                type="text"
-                                value={values.phone}
-                                name="phone"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                placeholder="Enter phone number"
-                                fullWidth
-                                error={Boolean(touched.phone && errors.phone)}
-                              />
+                              <Stack direction="row" spacing={1}>
+                                <FormControl
+                                  sx={{
+                                    width: { xs: "40%", lg: "32%", md: "32%" },
+                                  }}
+                                >
+                                  <Select
+                                    labelId="demo-multiple-name-label"
+                                    id="countryCode-signup"
+                                    value={values.countryCode}
+                                    type="countryCode"
+                                    name="countryCode"
+                                    onChange={handleChange}
+                                    input={<OutlinedInput />}
+                                    error={Boolean(
+                                      touched.countryCode && errors.countryCode
+                                    )}
+                                  >
+                                    {countriesList.map((name) => (
+                                      <MenuItem
+                                        key={name.code}
+                                        value={name.phone}
+                                      >
+                                        +{name.phone}
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                  {touched.countryCode &&
+                                    errors.countryCode && (
+                                      <FormHelperText
+                                        error
+                                        id="helper-text-countryCode-signup"
+                                      >
+                                        {errors.countryCode}
+                                      </FormHelperText>
+                                    )}
+                                </FormControl>
+                                <OutlinedInput
+                                  fullWidth
+                                  error={Boolean(touched.phone && errors.phone)}
+                                  id="phone-signup"
+                                  type="phone"
+                                  value={values.phone}
+                                  name="phone"
+                                  onBlur={handleBlur}
+                                  onChange={handleChange}
+                                  placeholder="10 Digits"
+                                />
+                              </Stack>
                               {touched.phone && errors.phone && (
                                 <FormHelperText
                                   error
@@ -403,7 +389,7 @@ export default function Account() {
                             </Grid>
 
                             {/* Email Field */}
-                            <Grid item xs={12} md={6} lg={6}>
+                            <Grid item xs={12} md={5} lg={5}>
                               <InputLabel
                                 htmlFor="email"
                                 sx={{ marginBottom: 1 }}
@@ -496,7 +482,6 @@ export default function Account() {
                         <Button
                           disableElevation
                           disabled={isSubmitting}
-                          
                           size="large"
                           type="submit"
                           variant="contained"
@@ -532,17 +517,28 @@ export default function Account() {
                     submit: null,
                   }}
                   validationSchema={Yup.object().shape({
-                    oldPassword: Yup.string().required("Old Password is required"),
+                    oldPassword: Yup.string().required(
+                      "Old Password is required"
+                    ),
                     newPassword: Yup.string()
-                    .min(8, "Password must be at least 8 characters")
-                    .matches(/[a-z]/, "Password must contain at least one lowercase letter")
-                    .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
-                    .matches(/\d/, "Password must contain at least one number")
-                    .matches(
-                      /[!@#$%^&*(),.?":{}|<>]/,
-                      "Password must contain at least one special character"
-                    )
-                    .required("Password is required"),
+                      .min(8, "Password must be at least 8 characters")
+                      .matches(
+                        /[a-z]/,
+                        "Password must contain at least one lowercase letter"
+                      )
+                      .matches(
+                        /[A-Z]/,
+                        "Password must contain at least one uppercase letter"
+                      )
+                      .matches(
+                        /\d/,
+                        "Password must contain at least one number"
+                      )
+                      .matches(
+                        /[!@#$%^&*(),.?":{}|<>]/,
+                        "Password must contain at least one special character"
+                      )
+                      .required("Password is required"),
                     confirmPassword: Yup.string()
                       .oneOf([Yup.ref("newPassword")], "Passwords must match")
                       .required("Confirm Password is required"),
@@ -573,7 +569,11 @@ export default function Account() {
                                 </InputLabel>
                                 <OutlinedInput
                                   id="old-password"
-                                  type={showPassword.oldPassword ? "text" : "password"}
+                                  type={
+                                    showPassword.oldPassword
+                                      ? "text"
+                                      : "password"
+                                  }
                                   value={values.oldPassword}
                                   name="oldPassword"
                                   onBlur={handleBlur}
@@ -590,7 +590,8 @@ export default function Account() {
                                         onClick={() =>
                                           setShowPassword((prev) => ({
                                             ...prev,
-                                            ['oldPassword']:!prev['oldPassword']
+                                            ["oldPassword"]:
+                                              !prev["oldPassword"],
                                           }))
                                         }
                                         onMouseDown={(e) => e.preventDefault()}
@@ -607,15 +608,14 @@ export default function Account() {
                                   }
                                 />
                                 {touched.oldPassword && errors.oldPassword && (
-                                <FormHelperText
-                                  error
-                                  id="standard-weight-helper-text-old-password"
-                                >
-                                  {errors.oldPassword}
-                                </FormHelperText>
-                              )}
+                                  <FormHelperText
+                                    error
+                                    id="standard-weight-helper-text-old-password"
+                                  >
+                                    {errors.oldPassword}
+                                  </FormHelperText>
+                                )}
                               </Stack>
-                              
                             </Grid>
 
                             <Grid item xs={12}>
@@ -629,7 +629,11 @@ export default function Account() {
                                     touched.newPassword && errors.newPassword
                                   )}
                                   id="new-password"
-                                  type={showPassword.newPassword ? "text" : "password"}
+                                  type={
+                                    showPassword.newPassword
+                                      ? "text"
+                                      : "password"
+                                  }
                                   value={values.newPassword}
                                   name="newPassword"
                                   onBlur={handleBlur}
@@ -643,8 +647,9 @@ export default function Account() {
                                         aria-label="toggle password visibility"
                                         onClick={() =>
                                           setShowPassword((prev) => ({
-                                             ...prev,
-                                              ['newPassword']:!prev['newPassword']
+                                            ...prev,
+                                            ["newPassword"]:
+                                              !prev["newPassword"],
                                           }))
                                         }
                                         onMouseDown={(e) => e.preventDefault()}
@@ -662,15 +667,14 @@ export default function Account() {
                                   placeholder="Enter new password"
                                 />
                                 {touched.newPassword && errors.newPassword && (
-                                <FormHelperText
-                                  error
-                                  id="standard-weight-helper-text-new-password"
-                                >
-                                  {errors.newPassword}
-                                </FormHelperText>
-                              )}
+                                  <FormHelperText
+                                    error
+                                    id="standard-weight-helper-text-new-password"
+                                  >
+                                    {errors.newPassword}
+                                  </FormHelperText>
+                                )}
                               </Stack>
-                              
                             </Grid>
 
                             <Grid item xs={12}>
@@ -685,7 +689,11 @@ export default function Account() {
                                       errors.confirmPassword
                                   )}
                                   id="confirm-password"
-                                  type={showPassword.confirmPassword ? "text" : "password"}
+                                  type={
+                                    showPassword.confirmPassword
+                                      ? "text"
+                                      : "password"
+                                  }
                                   value={values.confirmPassword}
                                   name="confirmPassword"
                                   onBlur={handleBlur}
@@ -696,8 +704,9 @@ export default function Account() {
                                         aria-label="toggle password visibility"
                                         onClick={() =>
                                           setShowPassword((prev) => ({
-                                             ...prev,
-                                              ['confirmPassword']:!prev['confirmPassword']
+                                            ...prev,
+                                            ["confirmPassword"]:
+                                              !prev["confirmPassword"],
                                           }))
                                         }
                                         onMouseDown={(e) => e.preventDefault()}
@@ -715,16 +724,15 @@ export default function Account() {
                                   placeholder="Confirm new password"
                                 />
                                 {touched.confirmPassword &&
-                                errors.confirmPassword && (
-                                  <FormHelperText
-                                    error
-                                    id="standard-weight-helper-text-confirm-password"
-                                  >
-                                    {errors.confirmPassword}
-                                  </FormHelperText>
-                                )}
+                                  errors.confirmPassword && (
+                                    <FormHelperText
+                                      error
+                                      id="standard-weight-helper-text-confirm-password"
+                                    >
+                                      {errors.confirmPassword}
+                                    </FormHelperText>
+                                  )}
                               </Stack>
-                              
                             </Grid>
                           </Grid>
                         </Grid>
@@ -740,7 +748,7 @@ export default function Account() {
                                   {passwordCriteria.minLength ? (
                                     <DoneIcon color="success" />
                                   ) : (
-                                    <RemoveIcon color="error"  />
+                                    <RemoveIcon color="error" />
                                   )}
                                 </ListItemAvatar>
                                 <ListItemText

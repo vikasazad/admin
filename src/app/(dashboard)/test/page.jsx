@@ -1,614 +1,2109 @@
 "use client";
-import React from "react";
-import dynamic from "next/dynamic"; // Use this if you're working in a Next.js environment
+import { LoginAuth } from "../../../actions/loginAuth";
 import {
-  Grid,
-  TextField,
-  Button,
-  Snackbar,
-  IconButton,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-  Container,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
-  FormHelperText,
-  Box,
-  OutlinedInput,
-  FormControl,
-  Tooltip,
-  Zoom,
-  Fab,
-  Tabs,
-  Tab,
-  TabPanel,
-  Divider,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Slide,
-  Stack,
-  FormGroup,
-  Checkbox,
-  FormControlLabel,
-  InputAdornment,
-  Card,
-  Avatar,
-} from "@mui/material";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import FolderIcon from "@mui/icons-material/Folder";
+  updateUser,
+  registerUser,
+  getData,
+  get7daysData,
+  get7daysDataFromAll,
+  getLiveData,
+} from "../../DB/dbFunctions";
 
-import MainCard from "../../components/MainCard";
-import { color } from "framer-motion";
+export default function Test() {
+  // const data = {
+  //   live: {
+  //     tables: [
+  //       {
+  //         tableNumber: "T1",
+  //         capacity: 4,
+  //         status: "available",
+  //         customer: null,
+  //         issuesReported: {},
+  //       },
+  //       {
+  //         tableNumber: "T2",
+  //         capacity: 2,
+  //         status: "occupied",
+  //         customer: {
+  //           name: "Alice Smith",
+  //           email: "alice@example.com",
+  //           phone: "123-456-7890",
+  //           diningDetails: {
+  //             timeSeated: JSON.stringify(new Date("2024-09-23T18:30:00Z")),
+  //             orders: [
+  //               {
+  //                 itemId: "67890",
+  //                 itemName: "Spaghetti Carbonara",
+  //                 portionSize: "Large",
+  //                 price: 25,
+  //               },
+  //               {
+  //                 itemId: "67891",
+  //                 itemName: "Garlic Bread",
+  //                 portionSize: "Small",
+  //                 price: 5,
+  //               },
+  //             ],
+  //             payment: {
+  //               mode: "online",
+  //               paymentId: "TXN67890",
+  //               timeOfTransaction: JSON.stringify(
+  //                 new Date().toLocaleTimeString()
+  //               ),
+  //               price: 35,
+  //               priceAfterDiscount: 30,
+  //               discount: {
+  //                 type: "coupon",
+  //                 amount: 3,
+  //                 code: "SAVE10",
+  //               },
+  //             },
+  //             attendant: "Bob Johnson",
+  //           },
+  //         },
+  //         issuesReported: {
+  //           lateService: {
+  //             category: "service",
+  //             name: "Late order delivery",
+  //             description: "Spaghetti Carbonara took too long to arrive.",
+  //             reportTime: JSON.stringify(new Date("2024-09-23T19:00:00Z")),
+  //             status: "Assigned",
+  //             attendant: "Charlie Brown",
+  //             resolutionTime: null,
+  //           },
+  //         },
+  //       },
+  //     ],
+  //   },
+  // };
 
-// Dynamically import ApexCharts to prevent SSR issues (optional for non-Next.js projects)
-const ReactApexChart = dynamic(() => import("react-apexcharts"), {
-  ssr: false,
-});
-const series = {
-  monthDataSeries1: {
-    dates: ["2024-01-01", "2024-02-01", "2024-03-01"],
-    prices: [300, 200, 100],
-  },
-};
-
-const LineChart = () => {
-  const line = {
-    series: [
-      {
-        name: "TEAM A",
-        type: "column",
-        data: [33, 11, 22, 47, 13, 22, 37, 21, 64, 22, 30],
-        color: "#fdcb69",
-      },
-      {
-        name: "TEAM B",
-        type: "line",
-        data: [33, 11, 22, 47, 13, 22, 37, 21, 64, 22, 30],
-        color: "#fdcb69",
-      },
-    ],
-    options: {
-      chart: {
-        type: "line",
-        stacked: false,
-        toolbar: {
-          show: false,
-        },
-      },
-      stroke: {
-        width: [0, 4],
-        curve: "smooth",
-      },
-      plotOptions: {
-        bar: {
-          horizontal: false,
-          columnWidth: "40%",
-          borderRadius: 5,
-        },
-      },
-      legend: {
-        show: false,
-        markers: {
-          size: 0,
-        },
-      },
-      dataLabels: {
-        enabled: false,
-      },
-
-      fill: {
-        type: ["gradient", "solid"],
-        gradient: {
-          inverseColors: false,
-          shade: "light",
-          type: "vertical",
-          opacityFrom: 0.0,
-          opacityTo: 0.4,
-        },
-      },
-      labels: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
-      markers: {
-        size: [0, 5],
-        colors: "#fff",
-        strokeColors: "#fdcb69",
-        hover: {
-          size: 8,
-        },
-      },
-      xaxis: {
-        type: "category",
-      },
-      yaxis: {
-        stepSize: 10,
-      },
-      tooltip: {
-        shared: true,
-        intersect: false,
-        y: {
-          formatter: function (y) {
-            if (typeof y !== "undefined") {
-              return y.toFixed(0) + " points";
-            }
-            return y;
-          },
-        },
-      },
-    },
-  };
-  const line2 = {
-    series: [
-      {
-        name: "series1",
-        data: [31, 40, 28, 51, 42, 109, 100],
-      },
-      {
-        name: "series2",
-        data: [11, 32, 45, 32, 34, 52, 41],
-      },
-    ],
-    options: {
-      chart: {
-        type: "area",
-        toolbar: {
-          show: false,
-        },
-      },
-      dataLabels: {
-        enabled: false,
-      },
-      stroke: {
-        curve: "smooth",
-      },
-      xaxis: {
-        labels: {
-          show: false,
-        },
-        axisTicks: {
-          show: false,
-        },
-        axisBorder: {
-          show: false,
-        },
-        type: "datetime",
-        categories: [
-          "2018-09-19T00:00:00.000Z",
-          "2018-09-19T01:30:00.000Z",
-          "2018-09-19T02:30:00.000Z",
-          "2018-09-19T03:30:00.000Z",
-          "2018-09-19T04:30:00.000Z",
-          "2018-09-19T05:30:00.000Z",
-          "2018-09-19T06:30:00.000Z",
-        ],
-      },
-
-      yaxis: {
-        labels: {
-          show: false,
-        },
-      },
-      tooltip: {
-        x: {
-          format: "dd/MM/yy HH:mm",
-        },
-      },
-      legend: {
-        position: "top",
-        horizontalAlign: "right",
-      },
-      grid: {
-        show: false,
-      },
-    },
-  };
-  const bar = {
-    series: [
-      {
-        name: "Net Profit",
-        data: [44, 55, 57, 56, 61, 58, 63, 60, 66],
-      },
-      {
-        name: "Revenue",
-        data: [76, 85, 101, 98, 87, 105, 91, 114, 94],
-      },
-      {
-        name: "Free Cash Flow",
-        data: [35, 41, 36, 26, 45, 48, 52, 53, 41],
-      },
-    ],
-    options: {
-      chart: {
-        type: "bar",
-        toolbar: {
-          show: false,
-        },
-      },
-      plotOptions: {
-        bar: {
-          horizontal: false,
-          columnWidth: "55%",
-          endingShape: "rounded",
-        },
-      },
-      dataLabels: {
-        enabled: false,
-      },
-      stroke: {
-        show: true,
-        width: 2,
-        colors: ["transparent"],
-        curve: "smooth",
-      },
-      xaxis: {
-        // labels: {
-        //     show: false,
-        // },
-        // axisTicks: {
-        //     show: false,
-        // },
-        // axisBorder: {
-        //     show: false,
-        // },
-        categories: [
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-        ],
-      },
-      yaxis: {
-        // labels: {
-        //     show: false,
-        // },
-        //   title: {
-        //     text: '$ (thousands)'
-        //   }
-      },
-      fill: {
-        opacity: 1,
-      },
-      tooltip: {
-        y: {
-          formatter: function (val) {
-            return "$ " + val + " thousands";
-          },
-        },
-      },
-      legend: {
-        position: "top",
-        horizontalAlign: "right",
-      },
-      grid: {
-        show: false,
-      },
-    },
-  };
-  const bar2 = {
-    series: [
-      {
-        name: "PRODUCT A",
-        data: [44, 55, 41, 67, 22, 43],
-      },
-      {
-        name: "PRODUCT B",
-        data: [13, 23, 20, 8, 13, 27],
-      },
-      {
-        name: "PRODUCT C",
-        data: [11, 17, 15, 15, 21, 14],
-      },
-      {
-        name: "PRODUCT D",
-        data: [21, 7, 25, 13, 22, 8],
-      },
-    ],
-    options: {
-      chart: {
-        type: "bar",
-        height: 350,
-        stacked: true,
-        toolbar: {
-          show: false,
-        },
-        zoom: {
-          enabled: true,
-        },
-      },
-      stroke: {
-        show: true,
-        curve: "smooth",
-      },
-      responsive: [
-        {
-          breakpoint: 480,
-          options: {
-            legend: {
-              position: "bottom",
-              offsetX: -10,
-              offsetY: 0,
-            },
-          },
-        },
-      ],
-      plotOptions: {
-        bar: {
-          horizontal: false,
-          borderRadius: 10,
-          borderRadiusApplication: "end", // 'around', 'end'
-          borderRadiusWhenStacked: "last", // 'all', 'last'
-          dataLabels: {
-            total: {
-              enabled: true,
-              style: {
-                fontSize: "13px",
-                fontWeight: 900,
-              },
-            },
-          },
-        },
-      },
-      xaxis: {
-        type: "datetime",
-        categories: [
-          "01/01/2011 GMT",
-          "01/02/2011 GMT",
-          "01/03/2011 GMT",
-          "01/04/2011 GMT",
-          "01/05/2011 GMT",
-          "01/06/2011 GMT",
-        ],
-      },
-      legend: {
-        position: "top",
-        horizontalAlign: "right",
-      },
-      grid: {
-        show: false,
-      },
-      fill: {
-        opacity: 1,
-      },
-    },
+  let usr;
+  const handleUser = async () => {
+    const user = await registerUser("surajnimeshh1000@gmail.com", data);
+    console.log(user);
   };
 
   return (
-    <>
-      {/* <div id="chart">
-      <ReactApexChart options={line.options} series={line.series} type="area" height={200} width={400} />
-      <ReactApexChart options={line2.options} series={line2.series} type="area" height={200} width={400} />
-      <ReactApexChart options={bar.options} series={bar.series} type="bar" height={200} width={400} />
-      <ReactApexChart options={bar2.options} series={bar2.series} type="bar" height={200} width={400} />
-      
+    <div>
+      <h1>{JSON.stringify(usr)}</h1>
+      <button onClick={() => handleUser()}>Click</button>
     </div>
-    <div id="html-dist"></div> */}
-      
-      <Grid container spacing={2.5}>
-        <Grid item xs={12} lg={9}>
-          <MainCard>
-            <Grid container spacing={2}>
-              <Grid item xs={12} lg={3}>
-                <Card variant="outlined" sx={{ padding: "20px" }}>
-                  <Grid container spacing={1.25}>
-                    <Grid item xs={12}>
-                      <Stack direction="row">
-                        <Typography variant="h6">Total</Typography>
-                        <Stack direction="row">
-                          <ArrowDropDownIcon />
-                          <Typography variant="h5">20%</Typography>
-                        </Stack>
-                      </Stack>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Stack>
-                        <Typography variant="h5">$8898</Typography>
-                        <Stack direction="row">
-                          <Typography variant="h5">5</Typography>
-                          <Typography variant="caption1">invoices</Typography>
-                        </Stack>
-                      </Stack>
-                    </Grid>
-                  </Grid>
-                </Card>
-              </Grid>
-              <Grid item xs={12} lg={3}>
-                <Card variant="outlined" sx={{ padding: "20px" }}>
-                  <Grid container spacing={1.25}>
-                    <Grid item xs={12}>
-                      <Stack direction="row">
-                        <Typography variant="h6">Total</Typography>
-                        <Stack direction="row">
-                          <ArrowDropDownIcon />
-                          <Typography variant="h5">20%</Typography>
-                        </Stack>
-                      </Stack>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Stack>
-                        <Typography variant="h5">$8898</Typography>
-                        <Stack direction="row">
-                          <Typography variant="h5">5</Typography>
-                          <Typography variant="caption1">invoices</Typography>
-                        </Stack>
-                      </Stack>
-                    </Grid>
-                  </Grid>
-                </Card>
-              </Grid>
-              <Grid item xs={12} lg={3}>
-                <Card variant="outlined" sx={{ padding: "20px" }}>
-                  <Grid container spacing={1.25}>
-                    <Grid item xs={12}>
-                      <Stack direction="row">
-                        <Typography variant="h6">Total</Typography>
-                        <Stack direction="row">
-                          <ArrowDropDownIcon />
-                          <Typography variant="h5">20%</Typography>
-                        </Stack>
-                      </Stack>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Stack>
-                        <Typography variant="h5">$8898</Typography>
-                        <Stack direction="row">
-                          <Typography variant="h5">5</Typography>
-                          <Typography variant="caption1">invoices</Typography>
-                        </Stack>
-                      </Stack>
-                    </Grid>
-                  </Grid>
-                </Card>
-              </Grid>
-              <Grid item xs={12} lg={3}>
-                <Card variant="outlined" sx={{ padding: "20px" }}>
-                  <Grid container spacing={1.25}>
-                    <Grid item xs={12}>
-                      <Stack direction="row">
-                        <Typography variant="h6">Total</Typography>
-                        <Stack direction="row">
-                          <ArrowDropDownIcon />
-                          <Typography variant="h5">20%</Typography>
-                        </Stack>
-                      </Stack>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Stack>
-                        <Typography variant="h5">$8898</Typography>
-                        <Stack direction="row">
-                          <Typography variant="h5">5</Typography>
-                          <Typography variant="caption1">invoices</Typography>
-                        </Stack>
-                      </Stack>
-                    </Grid>
-                  </Grid>
-                </Card>
-              </Grid>
-              <Grid item xs={12}>
-                <Box>
-                  <ReactApexChart
-                    options={line.options}
-                    series={line.series}
-                    type="area"
-                    height={270}
-                    width={"100%"}
-                  />
-                </Box>
-              </Grid>
-            </Grid>
-          </MainCard>
-        </Grid>
-
-        <Grid item xs={12} lg={3}>
-          <MainCard sx={{ paddingBottom: 2 }}>
-            <Box>
-              <Grid container spacing={3}>
-                <Grid item xs={4} lg={6}>
-                  <Card variant="outlined" sx={{ padding: "20px 0" }}>
-                    <Stack sx={{ alignItems: "center" }}>
-                      <Avatar>
-                        <FolderIcon />
-                      </Avatar>
-                      <Typography variant="subtitle1" mt={2}>
-                        All invoices
-                      </Typography>
-                    </Stack>
-                  </Card>
-                </Grid>
-                <Grid item xs={4} lg={6}>
-                  <Card variant="outlined" sx={{ padding: "20px 0" }}>
-                    <Stack sx={{ alignItems: "center" }}>
-                      <Avatar>
-                        <FolderIcon />
-                      </Avatar>
-                      <Typography variant="subtitle1" mt={2}>
-                        All invoices
-                      </Typography>
-                    </Stack>
-                  </Card>
-                </Grid>
-                <Grid item xs={4} lg={6}>
-                  <Card variant="outlined" sx={{ padding: "20px 0" }}>
-                    <Stack sx={{ alignItems: "center" }}>
-                      <Avatar>
-                        <FolderIcon />
-                      </Avatar>
-                      <Typography variant="subtitle1" mt={2}>
-                        All invoices
-                      </Typography>
-                    </Stack>
-                  </Card>
-                </Grid>
-                <Grid item xs={4} lg={6}>
-                  <Card variant="outlined" sx={{ padding: "20px 0" }}>
-                    <Stack sx={{ alignItems: "center" }}>
-                      <Avatar>
-                        <FolderIcon />
-                      </Avatar>
-                      <Typography variant="subtitle1" mt={2}>
-                        All invoices
-                      </Typography>
-                    </Stack>
-                  </Card>
-                </Grid>
-                <Grid item xs={4} lg={6}>
-                  <Card variant="outlined" sx={{ padding: "20px 0" }}>
-                    <Stack sx={{ alignItems: "center" }}>
-                      <Avatar>
-                        <FolderIcon />
-                      </Avatar>
-                      <Typography variant="subtitle1" mt={2}>
-                        All invoices
-                      </Typography>
-                    </Stack>
-                  </Card>
-                </Grid>
-                <Grid item xs={4} lg={6}>
-                  <Card variant="outlined" sx={{ padding: "20px 0" }}>
-                    <Stack sx={{ alignItems: "center" }}>
-                      <Avatar>
-                        <FolderIcon />
-                      </Avatar>
-                      <Typography variant="subtitle1" mt={2}>
-                        All invoices
-                      </Typography>
-                    </Stack>
-                  </Card>
-                </Grid>
-              </Grid>
-            </Box>
-          </MainCard>
-        </Grid>
-      </Grid>
-    </>
   );
-};
+}
 
-export default LineChart;
+//  const data = {
+//    rooms: {
+//      categories: {
+//        executive: {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 7,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 70000,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 68000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 66000,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 7,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 58000,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              totalEarnings: 63000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 67000,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 7,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 7,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 62000,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 7,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Executive",
+//        },
+//        deluxe: {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 7,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 7,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 81000,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 79000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 77000,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 7,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 65000,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              totalEarnings: 74000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 73000,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 7,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 7,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 71000,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 7,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Deluxe",
+//        },
+//        suite: {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 7,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 7,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 137000,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 135000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 133000,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 7,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 130000,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              totalEarnings: 129000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 81000,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 7,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 127000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 127000,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 7,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Suite",
+//        },
+//        "super suite": {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 7,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 7,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 66000,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 64000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 62000,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 7,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 59000,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 7,
+//              totalEarnings: 60000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 57000,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 7,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 7,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 56000,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 7,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Super Suite",
+//        },
+//      },
+//    },
+//    food: {
+//      categories: {
+//        "in-house restaurant": {
+//          weeks: {
+//            38: {
+//              totalEarnings: 0,
+//              avgDiningDuration: 0,
+//              totalBookings: 0,
+//              totalIssues: 0,
+//              avgPricPerOrder: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPrice: 0,
+//              totalIssues: 0,
+//              avgPricPerOrder: 0,
+//              totalBookings: 10,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              avgDiningDuration: 0,
+//              totalEarnings: 41000,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              totalBookings: 10,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              avgDiningDuration: 0,
+//              totalEarnings: 39000,
+//              avgPricPerOrder: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              avgDiningDuration: 0,
+//              totalBookings: 10,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPricPerOrder: 0,
+//              totalEarnings: 37000,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//            },
+//            265: {
+//              avgPrice: 0,
+//              totalIssues: 0,
+//              avgPricPerOrder: 0,
+//              totalBookings: 10,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 35000,
+//              avgDiningDuration: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//            },
+//            264: {
+//              avgDiningDuration: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalBookings: 10,
+//              totalEarnings: 33000,
+//              avgPriceOfFood: 0,
+//              avgPricPerOrder: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgDiningDuration: 0,
+//              avgPricPerOrder: 0,
+//              totalEarnings: 32000,
+//              totalBookings: 10,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPricPerOrder: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 10,
+//              avgDiningDuration: 0,
+//              totalEarnings: 30000,
+//            },
+//          },
+//          months: {
+//            9: {
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarnings: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              avgDiningDuration: 0,
+//              totalBookings: 10,
+//              avgPricPerOrder: 0,
+//            },
+//          },
+//          name: "In-house Restaurant",
+//        },
+//        restaurant: {
+//          weeks: {
+//            38: {
+//              totalEarnings: 0,
+//              avgDiningDuration: 0,
+//              totalBookings: 10,
+//              totalIssues: 0,
+//              avgPricPerOrder: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPrice: 0,
+//              totalIssues: 0,
+//              avgPricPerOrder: 0,
+//              totalBookings: 10,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              avgDiningDuration: 0,
+//              totalEarnings: 51000,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              totalBookings: 10,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              avgDiningDuration: 0,
+//              totalEarnings: 49000,
+//              avgPricPerOrder: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              avgDiningDuration: 0,
+//              totalBookings: 10,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPricPerOrder: 0,
+//              totalEarnings: 47000,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//            },
+//            265: {
+//              avgPrice: 0,
+//              totalIssues: 0,
+//              avgPricPerOrder: 0,
+//              totalBookings: 10,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 43000,
+//              avgDiningDuration: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//            },
+//            264: {
+//              avgDiningDuration: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalBookings: 10,
+//              totalEarnings: 45000,
+//              avgPriceOfFood: 0,
+//              avgPricPerOrder: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgDiningDuration: 0,
+//              avgPricPerOrder: 0,
+//              totalEarnings: 41000,
+//              totalBookings: 10,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPricPerOrder: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 10,
+//              avgDiningDuration: 0,
+//              totalEarnings: 40000,
+//            },
+//          },
+//          months: {
+//            9: {
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarnings: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalOrdersOnline: 0,
+//              totalOrdersForDelivery: 0,
+//              totalOrdersForTakeaway: 0,
+//              avgPriceForOrdersOnline: 0,
+//              avgPriceForOrdersDelivery: 0,
+//              avgPriceForOrdersTakeaway: 0,
+//              avgDiningDuration: 0,
+//              totalBookings: 0,
+//              avgPricPerOrder: 0,
+//            },
+//          },
+//          name: "Restaurant",
+//        },
+//      },
+//    },
+//    services: {
+//      categories: {
+//        spa: {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 5,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 31000,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 29000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 27000,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 5,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 25000,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              totalEarnings: 23000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 27000,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 5,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 5,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 31000,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 5,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Spa",
+//        },
+//        gym: {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 5,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 5,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 26200,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 24000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 22000,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 5,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 20000,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              totalEarnings: 18000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 21000,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 5,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 5,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 15000,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 5,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Gym",
+//        },
+//        laundry: {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 5,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 5,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 21000,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 19000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 17000,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 5,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 15000,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              totalEarnings: 13000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 11000,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 5,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 5,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 14000,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 5,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Laundry",
+//        },
+//        pool: {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 5,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 5,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 36000,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 34000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 32000,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 5,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 30000,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 5,
+//              totalEarnings: 28000,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 26200,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 5,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 5,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 25000,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Pool",
+//        },
+//      },
+//    },
+//    issues: {
+//      categories: {
+//        rooms: {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 2,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 32,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 2,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 25,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 2,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 62,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 2,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 46,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 2,
+//              totalEarnings: 22,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 15,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 2,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 2,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 23,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 2,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Rooms",
+//        },
+//        Food: {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 2,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 2,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 14,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 2,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 11,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 2,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 13,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 2,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 15,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 2,
+//              totalEarnings: 19,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 12,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 2,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 2,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 16,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 2,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Food",
+//        },
+//        services: {
+//          weeks: {
+//            38: {
+//              avgPriceOfServices: 0,
+//              totalEarnings: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 2,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromServices: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//            },
+//          },
+//          days: {
+//            268: {
+//              avgPriceOfServices: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalBookings: 2,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 8,
+//              totalServiceRequests: 0,
+//              avgPriceOfFood: 0,
+//            },
+//            267: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 2,
+//              totalFoodOrders: 0,
+//              avgStayDuration: 0,
+//              totalEarnings: 5,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//            },
+//            266: {
+//              totalEarningsFromServices: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 2,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfRooms: 0,
+//              totalEarnings: 7,
+//              totalFoodOrders: 0,
+//            },
+//            265: {
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfRooms: 0,
+//              totalBookings: 2,
+//              avgPriceOfFood: 0,
+//              totalEarnings: 1,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//            },
+//            264: {
+//              totalServiceRequests: 0,
+//              avgPriceOfMinibar: 0,
+//              avgStayDuration: 0,
+//              totalFoodOrders: 0,
+//              totalIssues: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPrice: 0,
+//              avgPriceOfServices: 0,
+//              totalBookings: 2,
+//              totalEarnings: 9,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfFood: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//            263: {
+//              avgPriceOfFood: 0,
+//              avgStayDuration: 0,
+//              avgPriceOfServices: 0,
+//              avgPriceOfRooms: 0,
+//              avgPriceOfMinibar: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 4,
+//              totalServiceRequests: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalBookings: 2,
+//              totalIssues: 12,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//            },
+//            262: {
+//              avgPriceOfRooms: 0,
+//              totalIssues: 0,
+//              totalFoodOrders: 0,
+//              avgPrice: 0,
+//              avgPriceOfFood: 0,
+//              totalBookings: 2,
+//              totalEarningsFromServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalEarningsFromMinibar: 0,
+//              totalEarnings: 5,
+//              avgPriceOfServices: 0,
+//            },
+//          },
+//          months: {
+//            9: {
+//              avgPriceOfServices: 0,
+//              avgPriceOfMinibar: 0,
+//              totalIssues: 0,
+//              avgPrice: 0,
+//              totalEarningsFromServices: 0,
+//              totalEarnings: 0,
+//              totalEarningsFromMinibar: 0,
+//              avgPriceOfFood: 0,
+//              totalFoodOrders: 0,
+//              totalServiceRequests: 0,
+//              avgStayDuration: 0,
+//              totalBookings: 0,
+//              avgPriceOfRooms: 0,
+//            },
+//          },
+//          name: "Services",
+//        },
+//      },
+//    },
+//  };
+
+// const hotellive = {
+//   live: {
+//     rooms: [
+//       {
+//         roomNumber: "101",
+//         bookingId: "RO:8966",
+//         status: "reserved",
+//         attendent: "Shyam Mishra",
+//         payment: {
+//           mode: "online",
+//           paymentId: "TXN123456",
+//           timeOfTransaction: JSON.stringify(new Date().toLocaleTimeString()),
+//           price: 30,
+//           priceAfterDiscount: 27,
+//           discount: {
+//             type: "coupon",
+//             amount: 3,
+//             code: "SAVE10",
+//           },
+//         },
+//         customer: {
+//           name: "John Doe",
+//           email: "johndoe@example.com",
+//           phone: "123-456-7890",
+//           checkIn: JSON.stringify(new Date("2024-09-20T15:00:00Z")),
+//           checkOut: JSON.stringify(new Date("2024-09-25T11:00:00Z")),
+//           noOfGuests: 2,
+//           specialRequirements: "Require a hypoallergenic pillow.",
+//         },
+//         diningDetails: {
+//           orders: [
+//             {
+//               orderId: "OR:123",
+//               items: [
+//                 {
+//                   itemName: "Pizza",
+//                   portionSize: "Large",
+//                   price: 20,
+//                 },
+//                 {
+//                   itemName: "Salad",
+//                   portionSize: "Small",
+//                   price: 10,
+//                 },
+//               ],
+//               attendant: "Alice Smith",
+//               status: "open",
+//               payment: {
+//                 mode: "online",
+//                 paymentId: "TXN123456",
+//                 timeOfTransaction: JSON.stringify(
+//                   new Date().toLocaleTimeString()
+//                 ),
+//                 price: 30,
+//                 priceAfterDiscount: 27,
+//                 discount: {
+//                   type: "coupon",
+//                   amount: 3,
+//                   code: "SAVE10",
+//                 },
+//               },
+//             },
+//           ],
+//         },
+//         servicesUsed: {
+//           massage: {
+//             serviceId: "SE:123",
+//             serviceName: "Massage",
+//             type: "massage",
+//             requestTime: JSON.stringify(new Date().toLocaleTimeString()),
+//             startTime: JSON.stringify(new Date().toLocaleTimeString()),
+//             endTime: JSON.stringify(new Date().toLocaleTimeString()),
+//             price: 50,
+//             attendant: "Bob Johnson",
+//             payment: {
+//               mode: "offline",
+//               paymentId: "CASH123",
+//               timeOfTransaction: JSON.stringify(
+//                 new Date().toLocaleTimeString()
+//               ),
+//               price: 60,
+//               priceAfterDiscount: 50,
+//               discount: {
+//                 type: "coupon",
+//                 amount: 3,
+//                 code: "SAVE10",
+//               },
+//             },
+//           },
+//         },
+//         issuesReported: {
+//           maintenance: {
+//             issueId: "IS:123",
+//             category: "maintenance",
+//             name: "Leaking faucet",
+//             description: "Faucet in the bathroom is leaking.",
+//             reportTime: JSON.stringify(new Date("2024-09-21T18:00:00Z")),
+//             status: "Assigned",
+//             attendant: "Charlie Brown",
+//             resolutionTime: null,
+//           },
+//         },
+//       },
+//       // Add more rooms here
+//     ],
+//   },
+// };

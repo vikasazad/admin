@@ -15,7 +15,7 @@ import LogoutOutlined from "@ant-design/icons/LogoutOutlined";
 import UserOutlined from "@ant-design/icons/UserOutlined";
 import WalletOutlined from "@ant-design/icons/WalletOutlined";
 import { useRouter } from "next/navigation";
-// ==============================|| HEADER PROFILE - PROFILE TAB ||============================== //
+import { signOut } from "next-auth/react";
 
 export default function ProfileTab() {
   const router = useRouter();
@@ -75,10 +75,7 @@ export default function ProfileTab() {
         </ListItemIcon>
         <ListItemText primary="Billing" />
       </ListItemButton>
-      <ListItemButton
-        selected={selectedIndex === 2}
-        onClick={() => router.push("/login")}
-      >
+      <ListItemButton selected={selectedIndex === 2} onClick={() => signOut()}>
         <ListItemIcon>
           <LogoutOutlined />
         </ListItemIcon>

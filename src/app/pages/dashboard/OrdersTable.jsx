@@ -1,6 +1,5 @@
 "use client";
 import PropTypes from "prop-types";
-// material-ui
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
@@ -11,33 +10,184 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-
-// third-party
- 
-import { NumericFormat } from "react-number-format";  
-
-
- 
-
-// project import
+import { NumericFormat } from "react-number-format";
 import Dot from "../../components/@extended/Dot";
+import { useEffect } from "react";
 
-function createData(tracking_no, name, fat, carbs, protein) {
-  return { tracking_no, name, fat, carbs, protein };
+function createData(
+  id,
+  name,
+  locationUnit,
+  people,
+  price,
+  status,
+  attendent,
+  paymentid,
+  startTime,
+  EndTime,
+  paymentStatus,
+  specialRequirements
+) {
+  return {
+    id,
+    name,
+    locationUnit,
+    people,
+    price,
+    status,
+    attendent,
+    paymentid,
+    startTime,
+    EndTime,
+    paymentStatus,
+    specialRequirements,
+  };
 }
 
-const rows = [
-  createData(84564564, "Camera Lens", 40, 2, 40570),
-  createData(98764564, "Laptop", 300, 0, 180139),
-  createData(98756325, "Mobile", 355, 1, 90989),
-  createData(98652366, "Handset", 50, 1, 10239),
-  createData(13286564, "Computer Accessories", 100, 1, 83348),
-  createData(86739658, "TV", 99, 0, 410780),
-  createData(13256498, "Keyboard", 125, 2, 70999),
-  createData(98753263, "Mouse", 89, 2, 10570),
-  createData(98753275, "Desktop", 185, 1, 98063),
-  createData(98753291, "Chair", 100, 0, 14001),
-];
+function processData(data) {
+  const rows = [];
+
+  // Process hotel rooms
+  if (data.hotel && data.hotel.rooms) {
+    data.hotel.rooms.forEach((room) => {
+      if (room.status !== "available") {
+        rows.push(
+          createData(
+            room.bookingId,
+            room.customer.name,
+            room.roomNumber,
+            room.customer.noOfGuests,
+            room.payment?.priceAfterDiscount || 0,
+            room.status,
+            room.diningDetails?.orders[0]?.attendant || "",
+            room.payment?.paymentId || "",
+            new Date(JSON.parse(room.customer.checkIn)).toLocaleDateString(),
+            new Date(JSON.parse(room.customer.checkOut)).toLocaleDateString(),
+            room.payment?.paymentStatus || "",
+            room.customer.specialRequirements
+          )
+        );
+      }
+    });
+  }
+
+  // Process restaurant tables
+  if (data.restaurant && data.restaurant.tables) {
+    data.restaurant.tables.forEach((table) => {
+      if (table.status !== "available") {
+        const diningDetails = table.customer?.diningDetails;
+        rows.push(
+          createData(
+            diningDetails.orderId,
+            table.customer?.name || "",
+            table.tableNumber,
+            table.capacity,
+            diningDetails?.payment?.priceAfterDiscount || 0,
+            table.status,
+            diningDetails?.attendant || "",
+            diningDetails?.payment?.paymentId || "",
+            new Date(JSON.parse(diningDetails?.timeSeated)).toLocaleTimeString(
+              [],
+              { hour: "2-digit", minute: "2-digit" }
+            ),
+            "",
+            diningDetails?.payment?.paymentStatus || "",
+            diningDetails?.specialRequirements
+          )
+        );
+      }
+    });
+  }
+
+  // Process hotel services
+  if (data.hotel && data.hotel.rooms) {
+    data.hotel.rooms.forEach((room) => {
+      if (room.servicesUsed) {
+        Object.values(room.servicesUsed).forEach((service) => {
+          console.log(service);
+          if (service.status !== "closed") {
+            const [Shour, Sminute] = JSON.parse(service.startTime).split(":");
+            const [Ehour, Eminute] = JSON.parse(service.endTime).split(":");
+            rows.push(
+              createData(
+                service.serviceId,
+                service.type,
+                room.roomNumber,
+                room.customer.noOfGuests,
+                service.payment?.priceAfterDiscount || 0,
+                service.status,
+                service.attendant,
+                service.payment?.paymentId || "",
+                `${Shour}:${Sminute}`,
+                `${Ehour}:${Eminute}`,
+                service.payment?.paymentStatus || "",
+                service.specialRequirement || ""
+              )
+            );
+          }
+        });
+      }
+    });
+  }
+
+  // Process issues reported
+  const processIssues = (issues, locationUnit, people) => {
+    if (issues) {
+      Object.values(issues).forEach((issue) => {
+        if (issue.status !== "closed") {
+          rows.push(
+            createData(
+              issue.issueId,
+              issue.name,
+              locationUnit,
+              people,
+              "",
+              issue.status,
+              issue.attendant,
+              "",
+              new Date(JSON.parse(issue.reportTime)).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              new Date(JSON.parse(issue.reportTime)).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+                ? new Date(JSON.parse(issue.reportTime)).toLocaleTimeString(
+                    [],
+                    {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }
+                  )
+                : "",
+              "",
+              issue.description
+            )
+          );
+        }
+      });
+    }
+  };
+
+  if (data.hotel && data.hotel.rooms) {
+    data.hotel.rooms.forEach((room) => {
+      processIssues(
+        room.issuesReported,
+        room.roomNumber,
+        room.customer.noOfGuests
+      );
+    });
+  }
+
+  if (data.restaurant && data.restaurant.tables) {
+    data.restaurant.tables.forEach((table) => {
+      processIssues(table.issuesReported, table.tableNumber, table.capacity);
+    });
+  }
+
+  return rows;
+}
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -68,40 +218,44 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
+  { id: "id", align: "left", disablePadding: false, label: "Id" },
+  { id: "name", align: "left", disablePadding: true, label: "Name" },
   {
-    id: "tracking_no",
-    align: "left",
-    disablePadding: false,
-    label: "Tracking No.",
-  },
-  {
-    id: "name",
+    id: "locationUnit",
     align: "left",
     disablePadding: true,
-    label: "Product Name",
+    label: "Location",
   },
+  { id: "people", align: "left", disablePadding: true, label: "People" },
+  { id: "price", align: "right", disablePadding: false, label: "Price" },
+  { id: "status", align: "left", disablePadding: false, label: "Status" },
+  { id: "attendent", align: "left", disablePadding: false, label: "Attendant" },
   {
-    id: "fat",
+    id: "paymentid",
     align: "right",
     disablePadding: false,
-    label: "Total Order",
+    label: "Payment ID",
   },
   {
-    id: "carbs",
+    id: "startTime",
+    align: "right",
+    disablePadding: false,
+    label: "Start Time",
+  },
+  { id: "EndTime", align: "right", disablePadding: false, label: "End Time" },
+  {
+    id: "paymentStatus",
+    align: "right",
+    disablePadding: false,
+    label: "Payment Status",
+  },
+  {
+    id: "specialRequirements",
     align: "left",
     disablePadding: false,
-
-    label: "Status",
-  },
-  {
-    id: "protein",
-    align: "right",
-    disablePadding: false,
-    label: "Total Amount",
+    label: "Sp. Req.",
   },
 ];
-
-// ==============================|| ORDER TABLE - HEADER ||============================== //
 
 function OrderTableHead({ order, orderBy }) {
   return (
@@ -127,21 +281,32 @@ function OrderStatus({ status }) {
   let title;
 
   switch (status) {
-    case 0:
+    case "pending":
+    case "Upcomming":
       color = "warning";
       title = "Pending";
       break;
-    case 1:
+    case "occupied":
       color = "success";
-      title = "Approved";
+      title = "Occupied";
       break;
-    case 2:
+    case "ongoing":
+      color = "success";
+      title = "Ongoing";
+      break;
+    case "reserved":
+    case "Assigned":
+    case "complete":
+      color = "success";
+      title = "Active";
+      break;
+    case "closed":
       color = "error";
-      title = "Rejected";
+      title = "Closed";
       break;
     default:
       color = "primary";
-      title = "None";
+      title = status;
   }
 
   return (
@@ -152,11 +317,12 @@ function OrderStatus({ status }) {
   );
 }
 
-// ==============================|| ORDER TABLE ||============================== //
-
-export default function OrderTable() {
+export default function OrderTable({ data }) {
+  console.log(data);
   const order = "asc";
-  const orderBy = "tracking_no";
+  const orderBy = "id";
+
+  const rows = processData(data);
 
   return (
     <Box>
@@ -181,26 +347,39 @@ export default function OrderTable() {
                   <TableRow
                     hover
                     role="checkbox"
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    sx={{
+                      "&:last-child td, &:last-child th": { border: 0 },
+                    }}
                     tabIndex={-1}
-                    key={row.tracking_no}
+                    key={row.id}
                   >
                     <TableCell component="th" id={labelId} scope="row">
-                      <Link color="secondary"> {row.tracking_no}</Link>
+                      <Link color="secondary">{row.id}</Link>
                     </TableCell>
                     <TableCell>{row.name}</TableCell>
-                    <TableCell align="right">{row.fat}</TableCell>
-                    <TableCell>
-                      <OrderStatus status={row.carbs} />
-                    </TableCell>
+                    <TableCell>{row.locationUnit}</TableCell>
+                    <TableCell>{row.people}</TableCell>
                     <TableCell align="right">
                       <NumericFormat
-                        value={row.protein}
+                        value={row.price}
                         displayType="text"
                         thousandSeparator
-                        prefix="$"
+                        prefix="&#8377; "
                       />
                     </TableCell>
+                    <TableCell>
+                      <OrderStatus status={row.status} />
+                    </TableCell>
+                    <TableCell>{row.attendent}</TableCell>
+                    <TableCell>{row.paymentid}</TableCell>
+                    <TableCell>{row.startTime}</TableCell>
+                    <TableCell>{row.EndTime}</TableCell>
+                    <TableCell>
+                      {row.paymentStatus && (
+                        <OrderStatus status={row.paymentStatus} />
+                      )}
+                    </TableCell>
+                    <TableCell>{row.specialRequirements}</TableCell>
                   </TableRow>
                 );
               }
@@ -213,5 +392,5 @@ export default function OrderTable() {
 }
 
 OrderTableHead.propTypes = { order: PropTypes.any, orderBy: PropTypes.string };
-
-OrderStatus.propTypes = { status: PropTypes.number };
+OrderStatus.propTypes = { status: PropTypes.string };
+OrderTable.propTypes = { data: PropTypes.object.isRequired };

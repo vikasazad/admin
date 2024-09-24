@@ -9,13 +9,14 @@ import concierge from "./concierge";
 import payment from "./payment";
 import member from "./members";
 import staff from "./staff";
-import account from "./account"
+import account from "./account";
+import { useSession } from "next-auth/react";
 
- 
 // ==============================|| MENU ITEMS ||============================== //
 
-const menuItems = {
-  items: [
+export default function menuItems() {
+  const { data: session } = useSession();
+  const allMenuItems = [
     dashboard,
     staff,
     hotel,
@@ -24,11 +25,17 @@ const menuItems = {
     payment,
     member,
     account,
-    staff,
     utilities,
     support,
-  ],
-};
+  ];
 
-export default menuItems;
-// items: [dashboard, pages, utilities, support]
+  // If the user role is 'staff', allow only staff and account in the menu
+  const staffMenuItems = [staff, account];
+
+  // Check user role from the session
+  const userRole = session?.user?.role;
+
+  const items = userRole === "staff" ? staffMenuItems : allMenuItems;
+
+  return items;
+}

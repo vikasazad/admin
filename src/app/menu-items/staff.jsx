@@ -1,16 +1,16 @@
 // assets
- 
-import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+
+import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 
 // icons
 const icons = {
-    PeopleOutlineIcon,
-}
+  PeopleOutlineIcon,
+};
 
 // ==============================|| MENU ITEMS - DASHBOARD ||============================== //
 
 const dashboard = {
-  id: "group-staff",
+  id: "group-staffs",
   title: "Staff",
   type: "group",
   children: [

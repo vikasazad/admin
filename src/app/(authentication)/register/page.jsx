@@ -8,7 +8,7 @@ import Divider from "@mui/material/Divider";
 import AuthWrapper from "../AuthWrapper";
 import AuthRegister from "../auth-forms/AuthRegister";
 import Link from "next/link";
-import SocialButton from "../../components/SocialButton/page";
+import SocialButton from "../../components/SocialButton/socialButton";
 // ================================|| REGISTER ||================================ //
 
 export default function Register() {

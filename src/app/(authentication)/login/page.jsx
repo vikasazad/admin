@@ -7,7 +7,7 @@ import Divider from "@mui/material/Divider";
 import AuthWrapper from "../AuthWrapper";
 import AuthLogin from "../auth-forms/AuthLogin";
 import Link from "next/link";
-import SocialButton from "../../components/SocialButton/page";
+import SocialButton from "../../components/SocialButton/socialButton";
 // ================================|| LOGIN ||================================ //
 
 export default async function Login() {

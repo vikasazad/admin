@@ -1872,8 +1872,9 @@ export default function Test() {
   };
   let usr;
   const handleUser = async () => {
-    const user = await registerUser("surajnimeshh1000@gmail.com", hotelData);
-    console.log(user);
+    // const user = await registerUser("surajnimeshh1000@gmail.com", hotelData);
+    const hashedPassword = await hash("123456789", 8);
+    console.log(hashedPassword);
   };
 
   return (

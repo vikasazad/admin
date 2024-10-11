@@ -44,16 +44,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.log("INTHENORMAL");
           const existingUser = await findUserByEmail(findEmail.email);
           console.log("existingUser", existingUser);
-          if (!existingUser || !existingUser.password) {
+          if (!existingUser || !existingUser.personalInfo.password) {
             // return {
             //   error: true,
             //   message: "Couldn't find your Buildbility Account!",
             // };
             throw new Error("Couldn't find for Buildbility Account!");
           }
-          if (findEmail.email === existingUser.email) {
+          if (findEmail.email === existingUser.personalInfo.contactInfo.email) {
             console.log("COMPARING");
-            if (await compare(password, existingUser.password)) {
+            if (await compare(password, existingUser.personalInfo.password)) {
               console.log("AUTHENTICATIG");
               return existingUser; // Return admin user if password matches
             }

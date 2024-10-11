@@ -36,16 +36,9 @@ import { addData } from "../../../../features/adminRestaurantInfoSlice";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CircleIcon from "@mui/icons-material/Circle";
+import { fetchFirestoreData } from "../../../../features/firestoreMultipleData";
+import { useSession } from "next-auth/react";
 import dayjs from "dayjs";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  listAll,
-  list,
-} from "firebase/storage";
-import { storage } from "../../../../DB/firebase";
-import { v4 } from "uuid";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -68,10 +61,15 @@ function getStyles(data, paymentOptions, theme) {
 }
 
 export default function ServiceInfo({ params }) {
+  const dispatch = useDispatch();
+  const { data: session, status } = useSession();
+  const user = session?.user;
   const theme = useTheme();
   console.log(params);
   const state = params.serviceName;
   console.log(state);
+  const hotelData = useSelector((state) => state.firestoreMultipleData);
+  const [serviceData, setserviceData] = useState(null);
   const [optionsArr, setOptionsArr] = useState([]);
   const [firstSelect, setFirstSelect] = useState([]);
   const [firstSelectError, setFirstSelectError] = useState("");
@@ -92,22 +90,51 @@ export default function ServiceInfo({ params }) {
   const [selectedTimeTaken, setSelectedTimeTaken] = useState({});
   const [selectedTimeTakenError, setSelectedTimeTakenError] = useState({});
   useEffect(() => {
-    if (state === "LaundryandDryCleaning") {
-      const laundryDryCleaning = {
-        LaundryService: ["Washing & Drying"],
-        DryCleaning: ["Professional dry cleaning"],
-        PressingService: ["Ironing and pressing"],
-        StainRemoval: ["Specialized stain treatment"],
-        ShoeShineService: ["Shoe polishing"],
-      };
-      const list = Object.keys(laundryDryCleaning);
-      setOptionsArr(list);
+    if (status === "authenticated") {
+      dispatch(
+        fetchFirestoreData({
+          email: user.email,
+          subCollection: "hotel",
+        })
+      );
     }
+  }, [dispatch, user]);
 
-    if (state === "PersonalShopping" || state === "Tours") {
-      const index = 0;
-      const infoState = {
-        [index]: {
+  useEffect(() => {
+    if (hotelData?.status === "succeeded") {
+      setserviceData(hotelData.data.services.categories);
+      console.log(hotelData.data.services.categories);
+    }
+  }, [hotelData]);
+  useEffect(() => {
+    if (serviceData) {
+      if (
+        state === "laundry" ||
+        state === "wellness" ||
+        state === "recreational" ||
+        state === "transportation"
+      ) {
+        const list = Object.keys(serviceData[state]);
+        setOptionsArr(list);
+      }
+
+      if (state === "personalshopping" || state === "tours") {
+        const data = Object.keys(serviceData[state])[0];
+
+        const index = 0;
+        const infoState = {
+          "Name of Service": serviceData[state][data].typeName,
+          Description: serviceData[state][data].description,
+          "Key Benefits": serviceData[state][data].keyBenefits,
+          Timeline: serviceData[state][data].timeline,
+          "Pricing per Person": serviceData[state][data].pricingPerPerson,
+          "Cancellation Policy":
+            serviceData[state][data].bookingAndCancellationPolicy,
+          Testimonials: serviceData[state][data].testimonials,
+        };
+        console.log("==================", infoState);
+        setDetailInfoState(infoState);
+        setDetailInfoErrorState({
           "Name of Service": "",
           Description: "",
           "Key Benefits": "",
@@ -115,12 +142,10 @@ export default function ServiceInfo({ params }) {
           "Pricing per Person": "",
           "Cancellation Policy": "",
           Testimonials: "",
-        },
-      };
-      setDetailInfoState(infoState);
-      setDetailInfoErrorState(infoState);
+        });
+      }
     }
-  }, []);
+  }, [serviceData]);
   const parseTime = (time) => {
     const [hours, minutes] = time.split(":");
     const meridian = time.split(" ")[1];
@@ -153,7 +178,7 @@ export default function ServiceInfo({ params }) {
     ShoeShineService: ["Shoe polishing"],
   };
 
-  const wellness = {
+  const recreational = {
     Massages: ["Swedish", "Deep tissue", "Hot stone", "Aromatherapy"],
     FacialTreatments: [
       "Customized facials",
@@ -213,6 +238,71 @@ export default function ServiceInfo({ params }) {
     ],
     WaterAerobics: ["Fitness classes in the pool"],
     SaunasAndSteamRooms: ["Saunas", "Steam rooms"],
+  };
+  const wellness = {
+    Massages: ["Swedish", "Deep tissue", "Hot stone", "Aromatherapy"],
+    FacialTreatments: [
+      "Customized facials",
+      "Anti-aging treatments",
+      "Specialized skin care",
+    ],
+    BodyTreatments: ["Body scrubs", "Wraps", "Exfoliating treatments"],
+    Hydrotherapy: ["Hot tubs", "Whirlpools", "Hydrotherapy baths"],
+    FitnessCenters: [
+      "Cardio machines",
+      "Free weights",
+      "Strength training equipment",
+    ],
+    PersonalTraining: ["Personalized fitness sessions"],
+    GroupClasses: ["Yoga", "Pilates", "Aerobics", "Spinning"],
+    OutdoorActivities: ["Hikes", "Biking tours", "Outdoor fitness sessions"],
+    DetoxPrograms: [
+      "Specialized diets",
+      "Detoxifying treatments",
+      "Detox activities",
+    ],
+    WeightLossPrograms: [
+      "Nutritional counseling",
+      "Exercise plans",
+      "Health monitoring",
+    ],
+    StressManagementPrograms: ["Meditation", "Mindfulness workshops"],
+    HairAndNailSalons: ["Haircuts", "Styling", "Manicures", "Pedicures"],
+    MakeupServices: ["Professional makeup application"],
+    Acupuncture: ["Traditional Chinese medicine techniques"],
+    Reiki: ["Energy healing treatments"],
+    Ayurveda: ["Holistic treatments", "Traditional Indian medicine therapies"],
+    DietaryConsultations: [
+      "Meetings with nutritionists",
+      "Personalized meal plans",
+    ],
+    JuiceBars: ["Fresh juices", "Smoothies", "Healthy beverages"],
+    MeditationSessions: ["Guided meditation classes", "Mindfulness workshops"],
+    RelaxationLounges: ["Comfortable seating", "Calming music", "Aromatherapy"],
+    SleepPrograms: ["Pillow menus", "Sleep-inducing teas"],
+    WellnessRetreats: [
+      "Multi-day programs",
+      "Workshops",
+      "Activities",
+      "Treatments",
+    ],
+    HealthAndWellnessSeminars: ["Educational sessions", "Wellness experts"],
+    ChiropracticServices: ["Spinal adjustments", "Treatments"],
+    PhysicalTherapy: ["Rehabilitation services", "Recovery treatments"],
+    CraniosacralTherapy: ["Gentle bodywork"],
+    SwimmingPools: [
+      "Indoor pools",
+      "Outdoor pools",
+      "Lap pools",
+      "Infinity pools",
+    ],
+    WaterAerobics: ["Fitness classes in the pool"],
+    SaunasAndSteamRooms: ["Saunas", "Steam rooms"],
+  };
+
+  const transportation = {
+    AirportShuttle: ["AirPortShuttle - To and from airport"],
+    ShuttleService: ["ShuttleService - Within local area or attractions"],
   };
 
   const wellnessHeadings = [
@@ -311,89 +401,124 @@ export default function ServiceInfo({ params }) {
 
   const handleFirstSelect = (event) => {
     const { value } = event.target;
-    if (value) {
-      const treatmentsArr = value.flatMap((key) => {
-        if (wellness.hasOwnProperty(key)) {
-          //had to change it to wellness or make it dynamic
-          return wellness[key];
-        }
-        return [];
-      });
+    if (value.length > 0) {
+      const treatmentsArr = value.flatMap((key) =>
+        Object.keys(serviceData[state][key])
+      );
       setSecondSelectList(treatmentsArr);
       setFirstSelect(value);
+      // setSecondSelectFlag(true);
+      setDetailFlag(false);
+      setFirstSelectError("");
+      setSecondSelect([]);
+    } else {
       setSecondSelectFlag(false);
       setDetailFlag(false);
-      setSubmitFlag(false);
-      setFirstSelectError("");
     }
   };
+
   const handleSecondSelect = (event) => {
     const { value } = event.target;
-    if (value) {
-      // const treatmentsArr = value.flatMap((key) => {
-      //   if (wellness.hasOwnProperty(key)) {
-      //     return wellness[key];
-      //   }
-      //   return [];
-      // });
-      // setSecondSelectList(treatmentsArr);
+    if (value.length > 0) {
       setSecondSelect(value);
-      if (state === "Wellness" || state === "Recreational") {
+      if (state === "wellness" || state === "recreational") {
         const initialInfoState = value.reduce((acc, data) => {
-          acc[data] = {
-            name: "",
-            description: "",
-            price: "",
-            startTime: dayjs().format("hh:mm A"),
-            endTime: dayjs().format("hh:mm A"),
-          };
+          const [category] =
+            Object.entries(serviceData[state]).find(([_, services]) =>
+              Object.keys(services).includes(data)
+            ) || [];
+          if (category) {
+            const serviceInfo = serviceData[state][category][data];
+            acc[data] = {
+              typeName: serviceInfo.typeName,
+              description: serviceInfo.description,
+              price: serviceInfo.price.toString(),
+              startTime: dayjs(serviceInfo.startTime, "HH:mm"),
+              endTime: dayjs(serviceInfo.endTime, "HH:mm"),
+            };
+          }
           return acc;
         }, {});
-        const timeState = value.reduce((acc, data) => {
-          acc[data] = {
-            startTime: dayjs(),
-            endTime: dayjs(),
-          };
-          return acc;
-        }, {});
-        const initialInfoErrorState = value.reduce((acc, data) => {
-          acc[data] = {
-            name: "",
-            description: "",
-            price: "",
-            startTime: "",
-            endTime: "",
-          };
-          return acc;
-        }, {});
+        console.log(initialInfoState);
+
         setDetailInfoState(initialInfoState);
-        setSelectedTime(timeState);
-        setDetailInfoErrorState(initialInfoErrorState);
+        setSelectedTime(
+          Object.keys(initialInfoState).reduce((acc, key) => {
+            acc[key] = {
+              startTime: initialInfoState[key].startTime,
+              endTime: initialInfoState[key].endTime,
+            };
+            return acc;
+          }, {})
+        );
+        setDetailInfoErrorState(
+          Object.keys(initialInfoState).reduce((acc, key) => {
+            acc[key] = {
+              typeName: "",
+              description: "",
+              price: "",
+              startTime: "",
+              endTime: "",
+            };
+            return acc;
+          }, {})
+        );
+
+        setSecondSelectError("");
       }
-      if (state === "LaundryandDryCleaning") {
+      if (state === "laundry") {
         const infoState = value.reduce((acc, data) => {
-          acc[data] = {
-            minPrice: "",
-            minTimeTaken: "",
-          };
+          const [category] =
+            Object.entries(serviceData[state]).find(([_, services]) =>
+              Object.keys(services).includes(data)
+            ) || [];
+
+          if (category) {
+            const serviceInfo = serviceData[state][category][data];
+            acc[data] = {
+              minPrice: serviceInfo.price.toString(),
+              minTimeTaken: serviceInfo.minTime,
+              description: serviceInfo.description,
+            };
+          }
           return acc;
         }, {});
-        const timeTaken = value.reduce((acc, data) => {
-          acc[data] = {
-            digit: "",
-            time: "",
-          };
-          return acc;
-        }, {});
+
         setDetailInfoState(infoState);
-        setDetailInfoErrorState(infoState);
+        setDetailInfoErrorState(
+          Object.keys(infoState).reduce((acc, key) => {
+            acc[key] = { minPrice: "", minTimeTaken: "", description: "" };
+            return acc;
+          }, {})
+        );
+
+        const timeTaken = value.reduce((acc, data) => {
+          const [digit, time] =
+            serviceData[state][
+              Object.keys(serviceData[state]).find((key) =>
+                Object.keys(serviceData[state][key]).includes(data)
+              )
+            ][data].minTime.split(" ");
+          acc[data] = { digit, time };
+          return acc;
+        }, {});
+
         setSelectedTimeTaken(timeTaken);
-        setSelectedTimeTakenError(timeTaken);
+        setSelectedTimeTakenError(
+          Object.keys(timeTaken).reduce((acc, key) => {
+            acc[key] = { digit: "", time: "" };
+            return acc;
+          }, {})
+        );
+
+        setSecondSelectError("");
       }
-      // console.log(infoState);
       setSecondSelectError("");
       setDetailFlag(false);
       setSubmitFlag(false);
+    } else {
+      setDetailFlag(false);
+      setSecondSelectFlag(false);
     }
   };
   const handleTreatmentInfo = (key, property, value) => {
@@ -427,6 +552,8 @@ export default function ServiceInfo({ params }) {
       validateField(key, property, value);
     }
   };
+
+  console.log(detailInfoState);
   const handlelaundry = (key, property, value) => {
     setDetailInfoState((prevState) => ({
       ...prevState,
@@ -644,9 +771,12 @@ export default function ServiceInfo({ params }) {
   };
 
   const transportationNext = () => {
-    if (firstSelect.length === 0) {
+    console.log("here");
+    if (!firstSelect) {
+      console.log("first");
       setFirstSelectError("Transportation services cannot be empty");
     } else {
+      console.log("here");
       setDetailFlag(true);
       setSubmitFlag(true);
       setFirstSelectError("");
@@ -740,27 +870,23 @@ export default function ServiceInfo({ params }) {
     console.log("alksdjfalskdfj");
   };
   const handleNext = () => {
-    if (
-      state === "Wellness" ||
-      state === "Recreational" ||
-      state === "LaundryandDryCleaning"
-    )
+    if (state === "wellness" || state === "recreational" || state === "laundry")
       wellnessNext();
-    if (state === "Transportation") transportationNext();
+    if (state === "transportation") transportationNext();
   };
   const handleSubmit = () => {
-    if (state === "Wellness" || state === "Recreational")
+    if (state === "wellness" || state === "recreational")
       wellnessNRecreationSubmit();
     if (state === "Transportation") transportationSubmit();
-    if (state === "LaundryandDryCleaning") laundryDryCleaningSubmit();
-    if (state === "PersonalShopping" || state === "Tours")
+    if (state === "laundry") laundryDryCleaningSubmit();
+    if (state === "personalshopping" || state === "tours")
       handleTourPackageSubmit();
   };
 
   return (
     <MainCard title={state}>
       <div>
-        {state === "Wellness" || state === "Recreational" ? (
+        {state === "wellness" || state === "recreational" ? (
           <div>
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} lg={12}>
@@ -795,7 +921,7 @@ export default function ServiceInfo({ params }) {
                     )}
                     MenuProps={MenuProps}
                   >
-                    {wellnessHeadings.map((data) => (
+                    {optionsArr.map((data) => (
                       <MenuItem
                         key={data}
                         value={data}
@@ -891,12 +1017,12 @@ export default function ServiceInfo({ params }) {
                             sx={{ width: "100%" }}
                             required
                             label={`Name of ${data}`}
-                            value={detailInfoState[data].name}
+                            value={detailInfoState[data].typeName}
                             onChange={(e) =>
                               handleTreatmentInfo(data, "name", e.target.value)
                             }
-                            error={!!detailInfoErrorState[data].name}
-                            helperText={detailInfoErrorState[data].name}
+                            error={!!detailInfoErrorState[data].typeName}
+                            helperText={detailInfoErrorState[data].typeName}
                           />
                         </Grid>
                         <Grid item xs={12} md={6} lg={6}>
@@ -904,7 +1030,7 @@ export default function ServiceInfo({ params }) {
                             sx={{ width: "100%" }}
                             required
                             label={`Description of ${data}`}
-                            value={detailInfoState[data].Description}
+                            value={detailInfoState[data].description}
                             onChange={(e) =>
                               handleTreatmentInfo(
                                 data,
@@ -921,7 +1047,7 @@ export default function ServiceInfo({ params }) {
                             sx={{ width: "100%" }}
                             required
                             label={`Price of ${data}`}
-                            value={detailInfoState[data].Price}
+                            value={detailInfoState[data].price}
                             onChange={(e) =>
                               handleTreatmentInfo(data, "price", e.target.value)
                             }
@@ -991,7 +1117,7 @@ export default function ServiceInfo({ params }) {
         ) : (
           ""
         )}
-        {state === "Transportation" ? (
+        {state === "transportation" ? (
           <Grid container>
             <Grid item xs={12} md={12} lg={12}>
               <FormControl
@@ -1005,10 +1131,12 @@ export default function ServiceInfo({ params }) {
                   sx={{ padding: "0rem !important" }}
                   labelId="demo-multiple-chip-label"
                   id="demo-multiple-chip"
-                  multiple
-                  value={firstSelect.map((data) => data)}
+                  value={firstSelect}
                   onChange={(e) => {
                     setFirstSelect(e.target.value);
+                    console.log(serviceData[state][e.target.value]);
+                    console.log(e.target.value);
+                    setDetailFlag(serviceData[state][e.target.value]);
                     setDetailFlag(false);
                     setSubmitFlag(false);
                   }}
@@ -1026,25 +1154,20 @@ export default function ServiceInfo({ params }) {
                         gap: 0.5,
                       }}
                     >
-                      {selected.map((value) => (
-                        <Chip key={value + 1} label={value} />
-                      ))}
+                      <Chip label={selected} />
                     </Box>
                   )}
                   MenuProps={MenuProps}
                 >
-                  <MenuItem
-                    value={"AirportShuttle"}
-                    style={getStyles("AirportShuttle", firstSelect, theme)}
-                  >
-                    AirportShuttle - To and from airport
-                  </MenuItem>
-                  <MenuItem
-                    value={"ShuttleService"}
-                    style={getStyles("ShuttleService", firstSelect, theme)}
-                  >
-                    ShuttleService - Within local area or attractions
-                  </MenuItem>
+                  {optionsArr.map((data) => (
+                    <MenuItem
+                      key={data}
+                      value={data}
+                      style={getStyles(data, firstSelect, theme)}
+                    >
+                      {data}
+                    </MenuItem>
+                  ))}
                 </Select>
                 {firstSelectError ? (
                   <FormHelperText>{firstSelectError}</FormHelperText>
@@ -1056,7 +1179,7 @@ export default function ServiceInfo({ params }) {
 
             {detailFlag ? (
               <div style={{ width: "100%" }}>
-                {firstSelect.includes("AirportShuttle") ? (
+                {firstSelect ? (
                   <Grid item xs={12} md={12} lg={12} sx={{ margin: "2rem 0" }}>
                     <Typography
                       variant="h6"
@@ -1068,6 +1191,7 @@ export default function ServiceInfo({ params }) {
                       id="outlined-multiline-static"
                       label="Please enter list of airports seperated by ','. For Example LXY,NDL,MBY"
                       multiline
+                      value={detailInfoState.description}
                       rows={4}
                       fullWidth
                       onChange={(e) => setAirportList(e.target.value)}
@@ -1086,7 +1210,7 @@ export default function ServiceInfo({ params }) {
         ) : (
           ""
         )}
-        {state === "LaundryandDryCleaning" ? (
+        {state === "laundry" ? (
           <Grid container>
             <Grid item xs={12} md={12} lg={12}>
               <FormControl sx={{ width: "100%" }} error={!!firstSelectError}>
@@ -1231,17 +1355,25 @@ export default function ServiceInfo({ params }) {
                           helperText={detailInfoErrorState[data].minPrice}
                         />
                       </Grid>
-                      {/*<Grid item xs={12} md={6} lg={6} sx={{ margin: '1rem 0' }}>
+                      <Grid
+                        item
+                        xs={12}
+                        md={6}
+                        lg={6}
+                        sx={{ margin: "1rem 0" }}
+                      >
                         <TextField
                           id="outlined-multiline-static"
-                          label={`Enter minimum time taken in ${data}`}
-                          value={detailInfoState[data].minTimeTaken}
+                          label={`Description of  ${data}`}
+                          value={detailInfoState[data].description}
                           fullWidth
-                          onChange={(e) => handlelaundry(data, 'minTimeTaken', e.target.value)}
-                          error={!!detailInfoErrorState[data].minTimeTaken}
-                          helperText={detailInfoErrorState[data].minTimeTaken}
+                          onChange={(e) =>
+                            handlelaundry(data, "description", e.target.value)
+                          }
+                          error={!!detailInfoErrorState[data].description}
+                          helperText={detailInfoErrorState[data].description}
                         />
-                      </Grid>*/}
+                      </Grid>
                       <Grid
                         item
                         xs={12}
@@ -1286,9 +1418,9 @@ export default function ServiceInfo({ params }) {
                             value={selectedTimeTaken[data].time}
                             onChange={(e) => handleTimeTaken(data, "time", e)}
                           >
-                            <MenuItem value="Minutes">Minutes</MenuItem>
-                            <MenuItem value="Hours">Hours</MenuItem>
-                            <MenuItem value="Days">Days</MenuItem>
+                            <MenuItem value="minutes">Minutes</MenuItem>
+                            <MenuItem value="hours">Hours</MenuItem>
+                            <MenuItem value="days">Days</MenuItem>
                           </Select>
                         </FormControl>
                         {detailInfoErrorState[data].minTimeTaken ? (
@@ -1319,7 +1451,7 @@ export default function ServiceInfo({ params }) {
         ) : (
           ""
         )}
-        {state === "PersonalShopping" || state === "Tours" ? (
+        {state === "personalshopping" || state === "tours" ? (
           <div>
             <Popper
               open={open}
@@ -1549,45 +1681,36 @@ export default function ServiceInfo({ params }) {
 
             {Object.keys(detailInfoState).map((key, index) => (
               <div key={index} style={{ margin: "1rem 0" }}>
-                {Object.keys(detailInfoState[key]).map((field, idx) => (
-                  <div key={idx} style={{ margin: "1rem 0" }}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={12} lg={12}>
-                        <Typography
-                          variant="h6"
-                          style={{ paddingBottom: "0.5rem" }}
-                        >
-                          {field}
-                        </Typography>
-                        <TextField
-                          id="outlined"
-                          label={`Details of ${field}`}
-                          value={detailInfoState[key][field]}
-                          required={field === "Testimonials" ? false : true}
-                          multiline={
-                            field === "Name of Service" ||
-                            field === "Description"
-                              ? false
-                              : true
-                          }
-                          rows={
-                            field === "Name of Service" ||
-                            field === "Description"
-                              ? 0
-                              : 4
-                          }
-                          fullWidth
-                          onChange={(e) =>
-                            handleTourPackage(key, field, e.target.value)
-                          }
-                          error={!!detailInfoErrorState[key][field]}
-                          helperText={detailInfoErrorState[key][field]}
-                        />
-                      </Grid>
-                    </Grid>
-                  </div>
-                ))}
-                <hr style={{ margin: "1rem 0" }} />
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={12} lg={12}>
+                    <Typography
+                      variant="h6"
+                      style={{ paddingBottom: "0.5rem" }}
+                    >
+                      {key}
+                    </Typography>
+                    <TextField
+                      id="outlined"
+                      label={`Details of ${key}`}
+                      value={detailInfoState[key]}
+                      required={key === "Testimonials" ? false : true}
+                      multiline={
+                        key === "Name of Service" || key === "Description"
+                          ? false
+                          : true
+                      }
+                      rows={
+                        key === "Name of Service" || key === "Description"
+                          ? 0
+                          : 4
+                      }
+                      fullWidth
+                      onChange={(e) => handleTourPackage(key, e.target.value)}
+                      error={!!detailInfoErrorState[key]}
+                      helperText={detailInfoErrorState[key]}
+                    />
+                  </Grid>
+                </Grid>
               </div>
             ))}
           </div>
@@ -1597,7 +1720,7 @@ export default function ServiceInfo({ params }) {
 
         {!submitFlag ? (
           <div style={{ margin: "2rem 0" }}>
-            {state === "PersonalShopping" || state === "Tours" ? (
+            {state === "personalshopping" || state === "tours" ? (
               <Button
                 variant="contained"
                 sx={{ letterSpacing: "1px", marginRight: "1rem" }}
@@ -1612,12 +1735,12 @@ export default function ServiceInfo({ params }) {
               variant="contained"
               sx={{ letterSpacing: "1px" }}
               onClick={
-                state === "PersonalShopping" || state === "Tours"
+                state === "personalshopping" || state === "tours"
                   ? handleAdd
                   : handleNext
               }
             >
-              {state === "PersonalShopping" || state === "Tours"
+              {state === "personalshopping" || state === "tours"
                 ? "Add More"
                 : "Next"}
             </Button>
@@ -1626,7 +1749,7 @@ export default function ServiceInfo({ params }) {
           ""
         )}
       </div>
-      {state === "PersonalShopping" || state === "Tours" ? (
+      {state === "personalshopping" || state === "tours" ? (
         <div
           style={{
             width: "100%",

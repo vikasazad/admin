@@ -1,8 +1,4 @@
-"use client";
-// project import
 import MainCard from "../../../components/MainCard";
-import { React, useState, useRef, useEffect } from "react";
-import { useTheme, styled } from "@mui/material/styles";
 import {
   Grid,
   TextField,
@@ -32,22 +28,10 @@ import ShoppingBasketOutlinedIcon from "@mui/icons-material/ShoppingBasketOutlin
 import DryCleaningOutlinedIcon from "@mui/icons-material/DryCleaningOutlined";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchDataFromFirestore } from "../../../features/firebaseSlice";
-import { addData } from "../../../features/adminRestaurantInfoSlice";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  listAll,
-  list,
-} from "firebase/storage";
-import { storage } from "../../../DB/firebase";
-import { v4 } from "uuid";
-import { useRouter } from "next/navigation";
+
 import Link from "next/link";
 
 export default function Service() {
-  const router = useRouter();
   const colors = [
     "#ffafcc",
     "#cdb4db",
@@ -70,7 +54,6 @@ export default function Service() {
         <div
           style={{
             textAlign: "center",
-
             cursor: "pointer",
           }}
         >
@@ -88,7 +71,7 @@ export default function Service() {
               }}
             >
               <Link
-                href="service/RoomUpgrades"
+                href="service/roomupgrades"
                 style={{ textDecoration: "none", color: "black" }}
               >
                 <div
@@ -133,7 +116,7 @@ export default function Service() {
               }}
             >
               <Link
-                href="service/Wellness"
+                href="service/wellness"
                 style={{ textDecoration: "none", color: "black" }}
               >
                 <div
@@ -181,7 +164,7 @@ export default function Service() {
               }}
             >
               <Link
-                href="service/Recreational"
+                href="service/recreational"
                 style={{ textDecoration: "none", color: "black" }}
               >
                 <div
@@ -229,7 +212,7 @@ export default function Service() {
               }}
             >
               <Link
-                href="service/Transportation"
+                href="service/transportation"
                 style={{ textDecoration: "none", color: "black" }}
               >
                 <div
@@ -277,7 +260,7 @@ export default function Service() {
               }}
             >
               <Link
-                href="service/PersonalShopping"
+                href="service/personalshopping"
                 style={{ textDecoration: "none", color: "black" }}
               >
                 <div
@@ -325,7 +308,7 @@ export default function Service() {
               }}
             >
               <Link
-                href="service/LaundryandDryCleaning"
+                href="service/laundry"
                 style={{ textDecoration: "none", color: "black" }}
               >
                 <div
@@ -373,7 +356,7 @@ export default function Service() {
               }}
             >
               <Link
-                href="service/Tours"
+                href="service/tours"
                 style={{ textDecoration: "none", color: "black" }}
               >
                 <div
@@ -421,7 +404,7 @@ export default function Service() {
               }}
             >
               <Link
-                href="service/Business"
+                href="service/business"
                 style={{ textDecoration: "none", color: "black" }}
               >
                 <div

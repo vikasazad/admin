@@ -13,7 +13,7 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  Box, 
+  Box,
   FormControl,
   Fab,
 } from "@mui/material";
@@ -24,7 +24,7 @@ import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDataFromFirestore } from "../../../../features/firebaseSlice";
-import { listData} from "../../../../features/list";
+import { addData } from "../../../../features/list";
 import {
   ref,
   uploadBytes,
@@ -34,10 +34,7 @@ import {
 } from "firebase/storage";
 import { storage } from "../../../../DB/firebase";
 import { v4 } from "uuid";
-import {
-  addData,
-  setCategoryFlag,
-} from "../../../../features/adminRestaurantInfoSlice";
+
 // import { useLocation } from "react-router-dom";
 import { useRouter } from "next/navigation";
 
@@ -73,10 +70,7 @@ export default function MenuInfo() {
   const uploadMenuImageInputRef = useRef(null);
   const timer = useRef();
 
-  const listData = useSelector(
-    (state) => state.listData.listData
-  );
-
+  const listData = useSelector((state) => state.listData.listData);
 
   const [categoryName, setCategoryName] = useState("");
   const [categoryNameError, setCategoryNameError] = useState("");
@@ -1838,7 +1832,10 @@ export default function MenuInfo() {
                 borderColor: "black",
                 "&:hover": { color: "grey", borderColor: "grey" },
               }}
-              onClick={() => router.back()}
+              onClick={() => {
+                dispatch(addData({}));
+                router.back();
+              }}
             >
               Cancel
             </Button>

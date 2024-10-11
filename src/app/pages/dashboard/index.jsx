@@ -1,56 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
-
 import dynamic from "next/dynamic";
 import {
   Grid,
-  TextField,
-  Button,
-  Snackbar,
   IconButton,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Typography,
-  Container,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
   FormHelperText,
   Box,
-  OutlinedInput,
-  FormControl,
-  Tooltip,
-  Zoom,
-  Fab,
-  Tabs,
-  Tab,
-  TabPanel,
   Divider,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Slide,
   Stack,
-  FormGroup,
-  Checkbox,
-  FormControlLabel,
-  InputAdornment,
   Card,
-  Avatar,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemButton,
+  Container,
 } from "@mui/material";
 
 // project import
@@ -61,33 +21,13 @@ import ReportAreaChart from "./ReportAreaChart";
 import UniqueVisitorCard from "./UniqueVisitorCard";
 import SaleReportCard from "./SaleReportCard";
 import OrdersTable from "./OrdersTable";
-
-// assets
-import GiftOutlined from "@ant-design/icons/GiftOutlined";
-import MessageOutlined from "@ant-design/icons/MessageOutlined";
-import SettingOutlined from "@ant-design/icons/SettingOutlined";
-
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
-import FolderIcon from "@mui/icons-material/Folder";
-import HomeWorkOutlinedIcon from "@mui/icons-material/HomeWorkOutlined";
-import LocalCafeOutlinedIcon from "@mui/icons-material/LocalCafeOutlined";
-import BedOutlinedIcon from "@mui/icons-material/BedOutlined";
-import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
-import GroupsIcon from "@mui/icons-material/Groups";
-import PaymentOutlinedIcon from "@mui/icons-material/PaymentOutlined";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import Popover from "@mui/material/Popover";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
-
-import avatar1 from "../../assets/images/users/avatar-1.png";
-import avatar2 from "../../assets/images/users/avatar-2.png";
-import avatar3 from "../../assets/images/users/avatar-3.png";
-import avatar4 from "../../assets/images/users/avatar-4.png";
-
-import { borderRadius } from "@mui/system";
 import { get7daysData, getData } from "../../DB/dbFunctions";
 import { useSession } from "next-auth/react";
 import { fetchFirestoreData } from "../../features/firestoreMultipleData";
@@ -726,50 +666,9 @@ export default function DashboardDefault({ user, data, table }) {
     );
   }, [dispatch, user]);
 
-  // useEffect(() => {
-  //   const fetchLast7DaysData = async () => {
-  //     const email = "user@example.com"; // Replace with dynamic email if needed
-  //     const subCollection = "analytics/rooms/categories/executive/days";
-
-  //     const today = new Date();
-  //     const last7Days = [...Array(7)].map((_, i) => {
-  //       const date = new Date(today);
-  //       date.setDate(today.getDate() - i);
-  //       return date;
-  //     });
-
-  //     // Fetch data for each of the last 7 days
-  //     const earningsData = await Promise.all(
-  //       last7Days.map(async (date) => {
-  //         const day = date.getDate().toString(); // Get day as a string (e.g., "21")
-  //         const data = await getData(email, `${subCollection}/${day}`);
-  //         return data?.totalEarnings || 0; // Return earnings or 0 if no data
-  //       })
-  //     );
-
-  //     const labels = last7Days.map(
-  //       (date) => date.toLocaleDateString("en-GB") // format dd/mm/yyyy
-  //     );
-
-  //     // Set chart data for the last 7 days
-  //     setChartData({
-  //       series: [
-  //         {
-  //           name: "Executive",
-  //           data: earningsData,
-  //         },
-  //       ],
-  //       xAxisLabels: labels,
-  //     });
-  //   };
-
-  //   fetchLast7DaysData();
-  // }, []);
-
   useEffect(() => {
-    if (firestoreMultipleData?.status === "succeeded") {
-      console.log(firestoreMultipleData.fetchedData.analytics.rooms);
-      console.log("=============", data);
+    if (data) {
+      // console.log("=============", data);
       const selectedCategoryData = data.rooms;
       const initialSeries = Object.keys(selectedCategoryData)
         .filter((key) => !key.includes("Bookings"))
@@ -780,12 +679,12 @@ export default function DashboardDefault({ user, data, table }) {
           color: colors[index % colors.length], // Cycle through the colors array
         }));
       setChartLabel(data.days);
-      console.log(selectedCategoryData);
+      // console.log(selectedCategoryData);
       setChartData(initialSeries); // Set the initial series data in state
       setChartOverview(calculateTotalEarningsAndEffectivePercentageAll(data));
       setStepSize(calculateStepSize(selectedCategoryData));
     }
-  }, [firestoreMultipleData]);
+  }, [data]);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -801,7 +700,7 @@ export default function DashboardDefault({ user, data, table }) {
     setAnchorElChart(null);
   };
   const handleChartFilter = (filter) => {
-    console.log(filter);
+    // console.log(filter);
     if (filter === "Today") {
       //take starting point as yesterdays totalEarnings and show todaysEarning till this point
     }
@@ -821,7 +720,7 @@ export default function DashboardDefault({ user, data, table }) {
     setAnchorElChart(null);
   };
   const handleFilter = (filter) => {
-    console.log(filter);
+    // console.log(filter);
     setFilter(filter);
     setAnchorEl(null);
   };
@@ -1436,45 +1335,51 @@ export default function DashboardDefault({ user, data, table }) {
                     <Stack>
                       {Object.keys(table).map((key) =>
                         ["roomsData", "tablesData"].map((dataKey) => {
-                          const data = table[key][dataKey];
-                          if (data) {
-                            const label =
-                              dataKey
-                                .replace("Data", "")
-                                .charAt(0)
-                                .toUpperCase() +
-                              dataKey.replace("Data", "").slice(1);
+                          if (
+                            (key === "hotel" && dataKey === "roomsData") ||
+                            (key === "restaurant" && dataKey === "tablesData")
+                          ) {
+                            const data = table[key][dataKey];
+                            // console.log("INSIDE", JSON.stringify(data));
+                            if (data.stats) {
+                              const label =
+                                dataKey
+                                  .replace("Data", "")
+                                  .charAt(0)
+                                  .toUpperCase() +
+                                dataKey.replace("Data", "").slice(1);
 
-                            return (
-                              <div key={dataKey}>
-                                {label === "Tables" && (
+                              return (
+                                <div key={dataKey}>
+                                  {label === "Tables" && (
+                                    <Divider sx={{ margin: "10px 0" }} />
+                                  )}
+                                  <Typography variant="h5" sx={{}}>
+                                    {label}
+                                  </Typography>
                                   <Divider sx={{ margin: "10px 0" }} />
-                                )}
-                                <Typography variant="h5" sx={{}}>
-                                  {label}
-                                </Typography>
-                                <Divider sx={{ margin: "10px 0" }} />
-                                {Object.keys(data).map((itemKey) => (
-                                  <Stack
-                                    direction="row"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                    key={itemKey}
-                                    sx={{ margin: "5px 0" }}
-                                  >
-                                    <Typography variant="h6">
-                                      {itemKey.charAt(0).toUpperCase() +
-                                        itemKey.slice(1)}
-                                    </Typography>
-                                    <Typography variant="subtitle1">
-                                      {data[itemKey]}
-                                    </Typography>
-                                  </Stack>
-                                ))}
-                              </div>
-                            );
+                                  {Object.keys(data.stats).map((itemKey) => (
+                                    <Stack
+                                      direction="row"
+                                      justifyContent="space-between"
+                                      alignItems="center"
+                                      key={itemKey}
+                                      sx={{ margin: "5px 0" }}
+                                    >
+                                      <Typography variant="h6">
+                                        {itemKey.charAt(0).toUpperCase() +
+                                          itemKey.slice(1)}
+                                      </Typography>
+                                      <Typography variant="subtitle1">
+                                        {data["stats"][itemKey]}
+                                      </Typography>
+                                    </Stack>
+                                  ))}
+                                </div>
+                              );
+                            }
+                            return null;
                           }
-                          return null;
                         })
                       )}
                     </Stack>

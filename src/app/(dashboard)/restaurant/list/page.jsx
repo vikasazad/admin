@@ -12,23 +12,35 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchDataFromFirestore } from "../../../features/firebaseSlice";
 import { useRouter } from "next/navigation";
 import { addData } from "../../../features/list";
+import { useSession } from "next-auth/react";
+import { getMenuData } from "../../../features/firestoreMultipleData";
+import { Stack } from "@mui/system";
 export default function List() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const firebaseData = useSelector((state) => state.firebaseData);
+  const { data: session, status } = useSession();
+  const user = session?.user?.personalInfo.contactInfo;
+  const menuData = useSelector((state) => state.firestoreMultipleData);
   const [categoriesList, setCategoriesList] = useState([]);
   const [showCheckbox, setShowCheckBox] = useState(false);
   const [checkedItems, setCheckedItems] = useState({});
   useEffect(() => {
-    dispatch(fetchDataFromFirestore());
-  }, [dispatch]);
+    if (status === "authenticated") {
+      dispatch(
+        getMenuData({
+          email: user.email,
+          subCollection: "restaurant",
+        })
+      );
+    }
+  }, [dispatch, user]);
 
   useEffect(() => {
-    if (firebaseData?.status === "succeeded") {
-      console.log(firebaseData.data);
-      setCategoriesList(firebaseData?.data?.categorys);
+    if (menuData?.status === "succeeded") {
+      console.log(menuData.data);
+      setCategoriesList(menuData?.data?.categories);
     }
-  }, [firebaseData]);
+  }, [menuData]);
 
   const handleChange = (event, index) => {
     setCheckedItems((prevCheckedItems) => {
@@ -73,129 +85,136 @@ export default function List() {
     }
   };
 
-  console.log(checkedItems);
+  // console.log(checkedItems);
 
   return (
     <MainCard>
-      <div>
-        <Grid container spacing={2}>
-          {categoriesList.map((data, index) => (
-            <Grid item xs={6} md={2.5} lg={2.5} key={index}>
-              {showCheckbox ? (
-                <Checkbox
-                  checked={checkedItems[index] || false}
-                  onChange={(event) => handleChange(event, index)}
-                  inputProps={{ "aria-label": "controlled" }}
-                />
-              ) : (
-                ""
-              )}
-              <div
-                onClick={() => handleClick(data)}
-                style={{
-                  cursor: "pointer",
-                  textAlign: "-webkit-center",
-                  boxShadow: " 0 1px 2px rgba(0,0,0,0.15)",
-                }}
-              >
-                <Avatar
+      {categoriesList && (
+        <div>
+          <Grid container spacing={2}>
+            {categoriesList.map((data, index) => (
+              <Grid item xs={6} md={2} lg={2} key={index}>
+                {showCheckbox ? (
+                  <Checkbox
+                    checked={checkedItems[index] || false}
+                    onChange={(event) => handleChange(event, index)}
+                    inputProps={{ "aria-label": "controlled" }}
+                  />
+                ) : (
+                  ""
+                )}
+                <Stack
+                  onClick={() => handleClick(data)}
                   sx={{
-                    width: { xs: "7rem", md: "5rem", lg: "5rem" },
-                    height: { xs: "7rem", md: "5rem", lg: "5rem" },
+                    cursor: "pointer",
+
+                    p: 1,
+                    // textAlign: "-webkit-center",
                   }}
-                  alt="recommended"
-                  src={data.categoryLogo}
-                />
-                <Typography
-                  variant="h6"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Avatar
+                    sx={{
+                      width: { xs: "7rem", md: "5rem", lg: "5rem" },
+                      height: { xs: "7rem", md: "5rem", lg: "5rem" },
+                      borderRadius: "5px",
+                    }}
+                    alt="recommended"
+                    src={data.categoryLogo}
+                    variant="square"
+                  />
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      p: 1,
+                      letterSpacing: 1,
+                    }}
+                  >
+                    {data.name}
+                  </Typography>
+                </Stack>
+              </Grid>
+            ))}
+            <Grid
+              container
+              spacing={2}
+              sx={{ marginTop: "3rem", textAlign: "left", padding: "0 16px" }}
+            >
+              <Grid item xs={6} md={3} lg={3}>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  endIcon={<DeleteOutlinedIcon />}
                   sx={{
-                    fontWeight: "500",
-                    letterSpacing: 1,
+                    lineHeight: 0,
+                    letterSpacing: "1px",
+                    color: "black",
+                    borderColor: "black",
+                    "&:hover": { color: "grey", borderColor: "grey" },
+                  }}
+                  onClick={() => handleDelete()}
+                >
+                  Delete
+                </Button>
+              </Grid>
+              <Grid item xs={6} md={3} lg={3}>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  endIcon={<AddCircleOutlineOutlinedIcon />}
+                  sx={{
+                    lineHeight: 0,
+                    letterSpacing: "1px",
+                    color: "black",
+                    borderColor: "black",
+                    "&:hover": { color: "grey", borderColor: "grey" },
+                  }}
+                  onClick={() => router.push("list/category")}
+                >
+                  Add
+                </Button>
+              </Grid>
+              <Grid item xs={6} md={3} lg={3}>
+                <Button
+                  disabled={!showCheckbox}
+                  variant="outlined"
+                  size="large"
+                  endIcon={<CancelOutlinedIcon />}
+                  sx={{
+                    lineHeight: 0,
+                    letterSpacing: "1px",
+                    color: "black",
+                    borderColor: "black",
+                    "&:hover": { color: "grey", borderColor: "grey" },
+                  }}
+                  onClick={() => {
+                    setShowCheckBox(false);
+                    setCheckedItems({});
                   }}
                 >
-                  {data.name}
-                </Typography>
-              </div>
-            </Grid>
-          ))}
-          <Grid
-            container
-            spacing={2}
-            sx={{ marginTop: "3rem", textAlign: "left", padding: "0 16px" }}
-          >
-            <Grid item xs={6} md={3} lg={3}>
-              <Button
-                variant="outlined"
-                size="large"
-                endIcon={<DeleteOutlinedIcon />}
-                sx={{
-                  lineHeight: 0,
-                  letterSpacing: "1px",
-                  color: "black",
-                  borderColor: "black",
-                  "&:hover": { color: "grey", borderColor: "grey" },
-                }}
-                onClick={() => handleDelete()}
-              >
-                Delete
-              </Button>
-            </Grid>
-            <Grid item xs={6} md={3} lg={3}>
-              <Button
-                variant="outlined"
-                size="large"
-                endIcon={<AddCircleOutlineOutlinedIcon />}
-                sx={{
-                  lineHeight: 0,
-                  letterSpacing: "1px",
-                  color: "black",
-                  borderColor: "black",
-                  "&:hover": { color: "grey", borderColor: "grey" },
-                }}
-                onClick={() => router.push("list/category")}
-              >
-                Add
-              </Button>
-            </Grid>
-            <Grid item xs={6} md={3} lg={3}>
-              <Button
-                disabled={!showCheckbox}
-                variant="outlined"
-                size="large"
-                endIcon={<CancelOutlinedIcon />}
-                sx={{
-                  lineHeight: 0,
-                  letterSpacing: "1px",
-                  color: "black",
-                  borderColor: "black",
-                  "&:hover": { color: "grey", borderColor: "grey" },
-                }}
-                onClick={() => {
-                  setShowCheckBox(false);
-                  setCheckedItems({});
-                }}
-              >
-                Cancel
-              </Button>
-            </Grid>
-            <Grid item xs={6} md={3} lg={3}>
-              <Button
-                variant="contained"
-                size="large"
-                endIcon={<CheckCircleIcon />}
-                sx={{
-                  lineHeight: 0,
-                  letterSpacing: "1px",
-                  backgroundColor: "black",
-                  "&:hover": { backgroundColor: "grey" },
-                }}
-              >
-                Save
-              </Button>
+                  Cancel
+                </Button>
+              </Grid>
+              <Grid item xs={6} md={3} lg={3}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  endIcon={<CheckCircleIcon />}
+                  sx={{
+                    lineHeight: 0,
+                    letterSpacing: "1px",
+                    backgroundColor: "black",
+                    "&:hover": { backgroundColor: "grey" },
+                  }}
+                >
+                  Save
+                </Button>
+              </Grid>
             </Grid>
           </Grid>
-        </Grid>
-      </div>
+        </div>
+      )}
     </MainCard>
   );
 }

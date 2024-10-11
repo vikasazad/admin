@@ -26,7 +26,7 @@ export default function List() {
   useEffect(() => {
     if (firebaseData?.status === "succeeded") {
       console.log(firebaseData.data);
-      setCategoriesList(firebaseData?.data?.categorys);
+      setCategoriesList(firebaseData?.data?.categories);
     }
   }, [firebaseData]);
 

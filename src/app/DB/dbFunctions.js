@@ -13,6 +13,7 @@ import {
   limit,
 } from "firebase/firestore";
 import { db } from "../DB/firebase";
+import { auth } from "../../auth";
 
 export async function registerUserEmail(email, token) {
   try {
@@ -31,7 +32,7 @@ export async function registerUserEmail(email, token) {
 
 export async function registerUser(email, newUser) {
   try {
-    await setDoc(doc(db, email, "analytics"), {
+    await setDoc(doc(db, email, "hotel"), {
       //setdoc is to create if not or if exists then overwrite // to add new sub-collection this function can be used
       ...newUser,
     });
@@ -59,6 +60,125 @@ export async function getData(email, subCollection) {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       return docSnap.data();
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return false;
+  }
+}
+export async function getRoomData() {
+  const session = await auth();
+  const user = session?.user?.personalInfo.contactInfo.email;
+  try {
+    const docRef = doc(db, user, "hotel");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = {
+        foodMenuItems: [],
+        hotelRoomIssues: [],
+        hotelServices: [],
+      };
+      if (docSnap.data().menu) {
+        const category = docSnap.data().menu.categories;
+        category.map((menu) =>
+          menu.menuItems.map((item) => {
+            const portionSizes = Object.keys(item.price); // Get the portion sizes (e.g., ["Single"], ["Half", "Full"], ["Medium", "Large"])
+            portionSizes.map((portion) => {
+              const obj = {
+                id: item.id,
+                name: item.name,
+                quantity: portion, // Portion size (e.g., "Single", "Half", "Full", etc.)
+                price: item.price[portion], // Corresponding price for the portion size
+              };
+              data.foodMenuItems.push(obj);
+            });
+          })
+        );
+      }
+
+      if (docSnap.data().issues) {
+        const arr = docSnap.data().issues;
+        Object.entries(arr).forEach(([key, value]) => {
+          value.forEach((subtype) => {
+            const obj = {
+              name: key,
+              issueSubtype: subtype,
+              description: false,
+            };
+            data.hotelRoomIssues.push(obj);
+          });
+        });
+      }
+      if (docSnap.data().services) {
+        const arr = docSnap.data().services.categories;
+        Object.values(arr).map((category, i) =>
+          Object.values(category).map((item) => {
+            item.map((detail) => {
+              const obj = {
+                name: detail.typeName || "Service",
+                startTime: detail.startTime || "N/A",
+                endTime: detail.endTime || "N/A",
+                price: detail.price || 0,
+              };
+              data.hotelServices.push(obj);
+            });
+          })
+        );
+      }
+
+      return data;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return false;
+  }
+}
+export async function getTableData() {
+  const session = await auth();
+  const user = session?.user?.personalInfo.contactInfo.email;
+  try {
+    const docRef = doc(db, user, "restaurant");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = {
+        foodMenuItems: [],
+        hotelTableIssues: [],
+      };
+      if (docSnap.data().menu) {
+        const category = docSnap.data().menu.categories;
+        category.map((menu) =>
+          menu.menuItems.map((item) => {
+            const portionSizes = Object.keys(item.price); // Get the portion sizes (e.g., ["Single"], ["Half", "Full"], ["Medium", "Large"])
+            portionSizes.map((portion) => {
+              const obj = {
+                id: item.id,
+                name: item.name,
+                quantity: portion, // Portion size (e.g., "Single", "Half", "Full", etc.)
+                price: item.price[portion], // Corresponding price for the portion size
+              };
+              data.foodMenuItems.push(obj);
+            });
+          })
+        );
+      }
+
+      if (docSnap.data().issues) {
+        const arr = docSnap.data().issues;
+        Object.entries(arr).forEach(([key, value]) => {
+          value.forEach((subtype) => {
+            const obj = {
+              name: key,
+              issueSubtype: subtype,
+              description: false,
+            };
+            data.hotelTableIssues.push(obj);
+          });
+        });
+      }
+
+      return data;
     } else {
       return false;
     }
@@ -203,6 +323,146 @@ export async function get7daysDataFromAll(email, subCollection) {
     }
   } catch (error) {
     console.error("Error fetching 7 days data from all categories:", error);
+    return false;
+  }
+}
+
+export async function handleRoomInformation(email) {
+  try {
+    const docRef = doc(db, email, "hotel");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = {
+        overview: {
+          todayCheckIn: [],
+          ongoing: [],
+          todayCheckOut: [],
+          vacant: [],
+          maintenance: [],
+        },
+      };
+      const reservation = docSnap.data().reservation;
+      const live = docSnap.data().live;
+      const history = docSnap.data().history;
+      data.overview.todayCheckIn = reservation;
+      data.overview.ongoing = live.rooms;
+      live.rooms.map((item) => {
+        if (item.checkOut) {
+          const checkOutTime = new Date(item.checkOut);
+          if (checkOutTime.toDateString() === new Date().toDateString()) {
+            data.overview.todayCheckOut.push(item);
+          }
+        }
+      });
+
+      live.roomsData.roomDetail.map((item) => {
+        if (item.status === "available") {
+          data.overview.vacant.push(item);
+        }
+        if (item.status === "fixing required") {
+          data.overview.maintenance.push(item);
+        }
+      });
+
+      data.live = live;
+      data.history = history;
+
+      return data;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.error("Error fetching Firestore data:", error);
+    return false;
+  }
+}
+export async function handleRoomStaffInformation(email) {
+  const session = await auth();
+  const user = session?.user?.personalInfo.contactInfo.email;
+  try {
+    const docRefHotel = doc(db, user, "hotel");
+    const docRefRestaurant = doc(db, user, "restaurant");
+    const [docSnapHotel, docSnapRestaurant] = await Promise.all([
+      getDoc(docRefHotel),
+      getDoc(docRefRestaurant),
+    ]);
+
+    const result = {
+      hotelOverview: {
+        todayCheckIn: [],
+        ongoing: [],
+        todayCheckOut: [],
+        vacant: [],
+        maintenance: [],
+        status: {},
+      },
+      restaurantOverview: {
+        occupied: [],
+        reserved: [],
+        available: [],
+        cleaning: [],
+        status: {},
+      },
+    };
+
+    if (docSnapHotel.exists()) {
+      const reservation = docSnapHotel.data().reservation;
+      const live = docSnapHotel.data().live;
+      result.hotelOverview.todayCheckIn = reservation;
+      result.hotelOverview.ongoing = live.rooms;
+      result.hotelOverview.status = live.roomsData.status;
+      live.rooms.map((item) => {
+        if (item.checkOut) {
+          const checkOutTime = new Date(item.checkOut);
+          if (checkOutTime.toDateString() === new Date().toDateString()) {
+            result.hotelOverview.todayCheckOut.push(item);
+          }
+        }
+      });
+      live.roomsData.roomDetail.map((item) => {
+        if (item.status === "available") {
+          result.hotelOverview.vacant.push(item);
+        }
+        if (item.status === "fixing required") {
+          result.hotelOverview.maintenance.push(item);
+        }
+      });
+    }
+
+    if (docSnapRestaurant.exists()) {
+      const reservation = docSnapRestaurant.data().reservation;
+      const live = docSnapRestaurant.data().live;
+      result.restaurantOverview.reserved = reservation;
+      result.restaurantOverview.status = live.tablesData.status;
+      live.tables.map((item) => {
+        if (item.diningDetails.status === "occupied") {
+          result.restaurantOverview.occupied.push(item);
+        }
+      });
+      live.tablesData.tableDetails.map((item) => {
+        if (item.status === "available") {
+          result.restaurantOverview.available.push(item);
+        }
+      });
+      live.tablesData.tableDetails.map((item) => {
+        if (item.status === "cleaning") {
+          result.restaurantOverview.cleaning.push(item);
+        }
+      });
+    }
+
+    if (
+      Object.keys(result).length === 0 ||
+      (result.hotelOverview === null && result.restaurantOverview === null)
+    ) {
+      console.log("HERE1", result);
+      return false;
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching Firestore data:", error);
     return false;
   }
 }

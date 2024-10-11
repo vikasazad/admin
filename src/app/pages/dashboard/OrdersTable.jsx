@@ -21,7 +21,7 @@ function createData(
   people,
   price,
   status,
-  attendent,
+  attendant,
   paymentid,
   startTime,
   EndTime,
@@ -35,7 +35,7 @@ function createData(
     people,
     price,
     status,
-    attendent,
+    attendant,
     paymentid,
     startTime,
     EndTime,
@@ -45,26 +45,27 @@ function createData(
 }
 
 function processData(data) {
+  // console.log("data", data);
   const rows = [];
 
   // Process hotel rooms
   if (data.hotel && data.hotel.rooms) {
     data.hotel.rooms.forEach((room) => {
-      if (room.status !== "available") {
+      if (room.bookingDetails.status !== "available") {
         rows.push(
           createData(
-            room.bookingId,
-            room.customer.name,
-            room.roomNumber,
-            room.customer.noOfGuests,
-            room.payment?.priceAfterDiscount || 0,
-            room.status,
-            room.diningDetails?.orders[0]?.attendant || "",
-            room.payment?.paymentId || "",
-            new Date(JSON.parse(room.customer.checkIn)).toLocaleDateString(),
-            new Date(JSON.parse(room.customer.checkOut)).toLocaleDateString(),
-            room.payment?.paymentStatus || "",
-            room.customer.specialRequirements
+            room.bookingDetails?.bookingId,
+            room.bookingDetails.customer.name,
+            room.bookingDetails.location,
+            room.bookingDetails.noOfGuests,
+            room.bookingDetails.payment?.priceAfterDiscount || 0,
+            room.bookingDetails.status,
+            room.bookingDetails.attendant || "",
+            room.bookingDetails.payment?.paymentId || "",
+            new Date(room.bookingDetails.checkIn).toLocaleDateString(),
+            new Date(room.bookingDetails.checkOut).toLocaleDateString(),
+            room.bookingDetails.payment?.paymentStatus || "",
+            room.bookingDetails.specialRequirements
           )
         );
       }
@@ -74,25 +75,24 @@ function processData(data) {
   // Process restaurant tables
   if (data.restaurant && data.restaurant.tables) {
     data.restaurant.tables.forEach((table) => {
-      if (table.status !== "available") {
-        const diningDetails = table.customer?.diningDetails;
+      if (table.diningDetails.status !== "available") {
         rows.push(
           createData(
-            diningDetails.orderId,
-            table.customer?.name || "",
-            table.tableNumber,
-            table.capacity,
-            diningDetails?.payment?.priceAfterDiscount || 0,
-            table.status,
-            diningDetails?.attendant || "",
-            diningDetails?.payment?.paymentId || "",
-            new Date(JSON.parse(diningDetails?.timeSeated)).toLocaleTimeString(
-              [],
-              { hour: "2-digit", minute: "2-digit" }
-            ),
+            table.diningDetails.orders[0].orderId,
+            table.diningDetails.customer?.name || "",
+            table.diningDetails.location,
+            table.diningDetails.capacity,
+            table.diningDetails?.payment?.priceAfterDiscount || 0,
+            table.diningDetails.status,
+            table.diningDetails?.attendant || "",
+            table.diningDetails?.payment?.paymentId || "",
+            new Date(table.diningDetails?.timeSeated).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
             "",
-            diningDetails?.payment?.paymentStatus || "",
-            diningDetails?.specialRequirements
+            table.diningDetails?.payment?.paymentStatus || "",
+            table.diningDetails?.specialRequirements
           )
         );
       }
@@ -104,22 +104,20 @@ function processData(data) {
     data.hotel.rooms.forEach((room) => {
       if (room.servicesUsed) {
         Object.values(room.servicesUsed).forEach((service) => {
-          console.log(service);
+          // console.log(service);
           if (service.status !== "closed") {
-            const [Shour, Sminute] = JSON.parse(service.startTime).split(":");
-            const [Ehour, Eminute] = JSON.parse(service.endTime).split(":");
             rows.push(
               createData(
                 service.serviceId,
                 service.type,
-                room.roomNumber,
-                room.customer.noOfGuests,
+                room.bookingDetails.location,
+                room.bookingDetails.noOfGuests,
                 service.payment?.priceAfterDiscount || 0,
                 service.status,
                 service.attendant,
                 service.payment?.paymentId || "",
-                `${Shour}:${Sminute}`,
-                `${Ehour}:${Eminute}`,
+                new Date(service.startTime).toLocaleTimeString(),
+                new Date(service.endTime).toLocaleTimeString(),
                 service.payment?.paymentStatus || "",
                 service.specialRequirement || ""
               )
@@ -145,21 +143,18 @@ function processData(data) {
               issue.status,
               issue.attendant,
               "",
-              new Date(JSON.parse(issue.reportTime)).toLocaleTimeString([], {
+              new Date(issue.reportTime).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               }),
-              new Date(JSON.parse(issue.reportTime)).toLocaleTimeString([], {
+              new Date(issue.reportTime).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })
-                ? new Date(JSON.parse(issue.reportTime)).toLocaleTimeString(
-                    [],
-                    {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }
-                  )
+                ? new Date(issue.reportTime).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
                 : "",
               "",
               issue.description
@@ -174,15 +169,19 @@ function processData(data) {
     data.hotel.rooms.forEach((room) => {
       processIssues(
         room.issuesReported,
-        room.roomNumber,
-        room.customer.noOfGuests
+        room.bookingDetails.location,
+        room.bookingDetails.noOfGuests
       );
     });
   }
 
   if (data.restaurant && data.restaurant.tables) {
     data.restaurant.tables.forEach((table) => {
-      processIssues(table.issuesReported, table.tableNumber, table.capacity);
+      processIssues(
+        table.issuesReported,
+        table.diningDetails.location,
+        table.diningDetails.capacity
+      );
     });
   }
 
@@ -229,7 +228,7 @@ const headCells = [
   { id: "people", align: "left", disablePadding: true, label: "People" },
   { id: "price", align: "right", disablePadding: false, label: "Price" },
   { id: "status", align: "left", disablePadding: false, label: "Status" },
-  { id: "attendent", align: "left", disablePadding: false, label: "Attendant" },
+  { id: "attendant", align: "left", disablePadding: false, label: "Attendant" },
   {
     id: "paymentid",
     align: "right",
@@ -318,7 +317,7 @@ function OrderStatus({ status }) {
 }
 
 export default function OrderTable({ data }) {
-  console.log(data);
+  // console.log(data);
   const order = "asc";
   const orderBy = "id";
 
@@ -370,7 +369,7 @@ export default function OrderTable({ data }) {
                     <TableCell>
                       <OrderStatus status={row.status} />
                     </TableCell>
-                    <TableCell>{row.attendent}</TableCell>
+                    <TableCell>{row.attendant}</TableCell>
                     <TableCell>{row.paymentid}</TableCell>
                     <TableCell>{row.startTime}</TableCell>
                     <TableCell>{row.EndTime}</TableCell>

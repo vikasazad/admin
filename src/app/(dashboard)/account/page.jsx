@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import {
   Grid,
@@ -35,9 +35,20 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import DoneIcon from "@mui/icons-material/Done";
 import EyeOutlined from "@ant-design/icons/EyeOutlined";
 import EyeInvisibleOutlined from "@ant-design/icons/EyeInvisibleOutlined";
+import ApartmentIcon from "@mui/icons-material/Apartment";
+import RestaurantIcon from "@mui/icons-material/Restaurant";
+import BusinessIcon from "@mui/icons-material/Business";
+import HotelInfo from "./hotelInfo";
+import RestaurantInfo from "./restaurantInfo";
+import BusinessInfo from "./businessInfo";
+import PersonalInfo from "./personalInfo";
+import ChangePassword from "./changePassword";
+import Settings from "./settings";
 import * as Yup from "yup";
 import { Formik } from "formik";
 import { countriesList } from "../../assets/countriesData";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchFirestoreManagementData } from "../../features/managementInfo";
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -62,803 +73,113 @@ function a11yProps(index) {
 }
 
 export default function Account() {
-  const { data: session } = useSession();
-  console.log(session);
+  const dispatch = useDispatch();
+  const { data: session, status } = useSession();
+  const user = session?.user?.personalInfo.contactInfo;
+  const info = useSelector((state) => state.firebaseManagementData);
   const [value, setValue] = React.useState(0);
-  const [showPassword, setShowPassword] = useState({
-    oldPassword: false,
-    newPassword: false,
-    confirmPassword: false,
-  });
-  const [passwordCriteria, setPasswordCriteria] = useState({
-    minLength: false,
-    lowercase: false,
-    uppercase: false,
-    number: false,
-    specialChar: false,
-  });
+  const [management, setManagement] = useState(null);
 
-  const countryName = () => {
-    const name = countriesList.find(
-      (item) => item.phone === session?.user.countryCode || ""
-    );
-    return name?.label;
-  };
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
+  useEffect(() => {
+    if (status === "authenticated") {
+      dispatch(
+        fetchFirestoreManagementData({
+          email: user.email,
+        })
+      );
+    }
+  }, [dispatch, user, status]);
 
-  const handleMouseDownPassword = (event) => {
-    event.preventDefault();
-  };
+  useEffect(() => {
+    if (info?.status === "succeeded") {
+      setManagement(info?.data);
+    }
+  }, [info]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-  const handlePasswordChange = (e) => {
-    const { value } = e.target;
-    setPasswordCriteria({
-      minLength: value.length >= 8,
-      lowercase: /[a-z]/.test(value),
-      uppercase: /[A-Z]/.test(value),
-      number: /\d/.test(value),
-      specialChar: /[!@#$%^&*(),.?":{}|<>]/.test(value),
-    });
-  };
+
   return (
-    <MainCard>
-      <Box sx={{ width: "100%" }}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            aria-label="basic tabs example"
-          >
-            <Tab
-              icon={<PermIdentityOutlinedIcon fontSize="small" />}
-              iconPosition="start"
-              label="Profile"
-              {...a11yProps(0)}
-            />
-            <Tab
-              icon={<HttpsOutlinedIcon fontSize="small" />}
-              iconPosition="start"
-              label="Change Password"
-              {...a11yProps(1)}
-            />
-            <Tab
-              icon={<SupervisorAccountOutlinedIcon fontSize="small" />}
-              iconPosition="start"
-              label="Staff"
-              {...a11yProps(2)}
-            />
-            <Tab
-              icon={<SettingsIcon fontSize="small" />}
-              iconPosition="start"
-              label="Settings"
-              {...a11yProps(3)}
-            />
-          </Tabs>
-        </Box>
-        <CustomTabPanel label="start" value={value} index={0}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Formik
-                initialValues={{
-                  name: session?.user?.name || "",
-                  country: countryName() || "",
-                  zipcode: "",
-                  countryCode: session?.user?.countryCode || "",
-                  phone: session?.user?.phone || "",
-                  email: session?.user?.email || "",
-                  address: "",
-                  url: "",
-                  submit: null,
-                }}
-                enableReinitialize={true}
-                validationSchema={Yup.object().shape({
-                  name: Yup.string()
-                    .max(255, "First Name must be at most 255 characters")
-                    .required("First Name is required"),
-                  country: Yup.string()
-                    .max(255, "Country must be at most 255 characters")
-                    .required("Country is required"),
-                  zipcode: Yup.string()
-                    .max(255, "Zipcode must be at most 255 characters")
-                    .required("Zipcode is required"),
-                  countryCode: Yup.string()
-                    .max(255)
-                    .required("Country Code is required"),
-                  phone: Yup.string()
-                    .matches(
-                      /^[0-9]+$/,
-                      "Phone number must contain only digits"
-                    )
-                    .min(10, "Phone number must be at least 10 digits")
-                    .max(15, "Phone number must be at most 15 digits")
-                    .required("Phone number is required"),
-                  email: Yup.string()
-                    .email("Must be a valid email")
-                    .max(255, "Email must be at most 255 characters")
-                    .required("Email is required"),
-                  address: Yup.string()
-                    .max(255, "Address must be at most 255 characters")
-                    .required("Address is required"),
-                  url: Yup.string()
-                    .url("Must be a valid URL")
-                    .max(255, "URL must be at most 255 characters")
-                    .required("URL is required"),
-                })}
-                onSubmit={(values, { setSubmitting, setErrors }) => {
-                  console.log("Form Values:", values);
-                  setSubmitting(false);
-                }}
+    <>
+      {management && (
+        <MainCard>
+          <Box sx={{ width: "100%" }}>
+            <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+              <Tabs
+                value={value}
+                onChange={handleChange}
+                aria-label="basic tabs example"
               >
-                {({
-                  errors,
-                  handleBlur,
-                  handleChange,
-                  handleSubmit,
-                  isSubmitting,
-                  touched,
-                  values,
-                }) => (
-                  <form noValidate onSubmit={handleSubmit}>
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={12} lg={12}>
-                        <Card variant="outlined">
-                          <Stack sx={{ padding: "20px" }}>
-                            <Typography variant="subtitle1">
-                              Personal Information
-                            </Typography>
-                          </Stack>
-                          <Divider />
-                          <Grid container spacing={3} p={2}>
-                            {/* First Name Field */}
-                            <Grid item xs={12} md={6} lg={6}>
-                              <InputLabel
-                                htmlFor="name"
-                                sx={{ marginBottom: 1 }}
-                              >
-                                Name
-                              </InputLabel>
-                              <OutlinedInput
-                                variant="outlined"
-                                id="name"
-                                type="text"
-                                value={values.name}
-                                name="name"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                placeholder="Enter name"
-                                fullWidth
-                                error={Boolean(touched.name && errors.name)}
-                              />
-                              {touched.name && errors.name && (
-                                <FormHelperText
-                                  error
-                                  id="standard-weight-helper-text-name"
-                                >
-                                  {errors.name}
-                                </FormHelperText>
-                              )}
-                            </Grid>
-
-                            {/* Country Field */}
-                            <Grid item xs={12} md={6} lg={6}>
-                              <InputLabel
-                                htmlFor="country"
-                                sx={{ marginBottom: 1 }}
-                              >
-                                Country
-                              </InputLabel>
-                              <OutlinedInput
-                                variant="outlined"
-                                id="country"
-                                type="text"
-                                value={values.country}
-                                name="country"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                placeholder="Enter country name"
-                                fullWidth
-                                error={Boolean(
-                                  touched.country && errors.country
-                                )}
-                              />
-                              {touched.country && errors.country && (
-                                <FormHelperText
-                                  error
-                                  id="standard-weight-helper-text-country"
-                                >
-                                  {errors.country}
-                                </FormHelperText>
-                              )}
-                            </Grid>
-
-                            {/* Zip Code Field */}
-                            <Grid item xs={12} md={6} lg={6}>
-                              <InputLabel
-                                htmlFor="zip-code"
-                                sx={{ marginBottom: 1 }}
-                              >
-                                Zip Code
-                              </InputLabel>
-                              <OutlinedInput
-                                variant="outlined"
-                                id="zip-code"
-                                type="text"
-                                value={values.zipcode}
-                                name="zipcode"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                placeholder="Enter zip code"
-                                fullWidth
-                                error={Boolean(
-                                  touched.zipcode && errors.zipcode
-                                )}
-                              />
-                              {touched.zipcode && errors.zipcode && (
-                                <FormHelperText
-                                  error
-                                  id="standard-weight-helper-text-zip-code"
-                                >
-                                  {errors.zipcode}
-                                </FormHelperText>
-                              )}
-                            </Grid>
-                          </Grid>
-                        </Card>
-                      </Grid>
-
-                      {/* Contact Information Card */}
-                      <Grid item xs={12} md={6} lg={6}>
-                        <Card variant="outlined">
-                          <Stack sx={{ padding: "20px" }}>
-                            <Typography variant="subtitle1">
-                              Contact Information
-                            </Typography>
-                          </Stack>
-                          <Divider />
-                          <Grid container spacing={1} p={2}>
-                            {/* Phone Number Field */}
-                            <Grid item xs={12} md={7} lg={7}>
-                              <InputLabel
-                                htmlFor="phone-number"
-                                sx={{ marginBottom: 1 }}
-                              >
-                                Phone Number
-                              </InputLabel>
-                              <Stack direction="row" spacing={1}>
-                                <FormControl
-                                  sx={{
-                                    width: { xs: "40%", lg: "32%", md: "32%" },
-                                  }}
-                                >
-                                  <Select
-                                    labelId="demo-multiple-name-label"
-                                    id="countryCode-signup"
-                                    value={values.countryCode}
-                                    type="countryCode"
-                                    name="countryCode"
-                                    onChange={handleChange}
-                                    input={<OutlinedInput />}
-                                    error={Boolean(
-                                      touched.countryCode && errors.countryCode
-                                    )}
-                                  >
-                                    {countriesList.map((name) => (
-                                      <MenuItem
-                                        key={name.code}
-                                        value={name.phone}
-                                      >
-                                        +{name.phone}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                  {touched.countryCode &&
-                                    errors.countryCode && (
-                                      <FormHelperText
-                                        error
-                                        id="helper-text-countryCode-signup"
-                                      >
-                                        {errors.countryCode}
-                                      </FormHelperText>
-                                    )}
-                                </FormControl>
-                                <OutlinedInput
-                                  fullWidth
-                                  error={Boolean(touched.phone && errors.phone)}
-                                  id="phone-signup"
-                                  type="phone"
-                                  value={values.phone}
-                                  name="phone"
-                                  onBlur={handleBlur}
-                                  onChange={handleChange}
-                                  placeholder="10 Digits"
-                                />
-                              </Stack>
-                              {touched.phone && errors.phone && (
-                                <FormHelperText
-                                  error
-                                  id="standard-weight-helper-text-phone-number"
-                                >
-                                  {errors.phone}
-                                </FormHelperText>
-                              )}
-                            </Grid>
-
-                            {/* Email Field */}
-                            <Grid item xs={12} md={5} lg={5}>
-                              <InputLabel
-                                htmlFor="email"
-                                sx={{ marginBottom: 1 }}
-                              >
-                                Email
-                              </InputLabel>
-                              <OutlinedInput
-                                variant="outlined"
-                                id="email"
-                                type="email"
-                                value={values.email}
-                                name="email"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                placeholder="Enter email address"
-                                fullWidth
-                                error={Boolean(touched.email && errors.email)}
-                              />
-                              {touched.email && errors.email && (
-                                <FormHelperText
-                                  error
-                                  id="standard-weight-helper-text-email"
-                                >
-                                  {errors.email}
-                                </FormHelperText>
-                              )}
-                            </Grid>
-
-                            {/* Address Field */}
-                            <Grid item xs={12} md={12} lg={12}>
-                              <InputLabel
-                                htmlFor="address"
-                                sx={{ marginBottom: 1 }}
-                              >
-                                Address
-                              </InputLabel>
-                              <OutlinedInput
-                                variant="outlined"
-                                id="address"
-                                type="text"
-                                value={values.address}
-                                name="address"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                placeholder="Enter address"
-                                fullWidth
-                                error={Boolean(
-                                  touched.address && errors.address
-                                )}
-                              />
-                              {touched.address && errors.address && (
-                                <FormHelperText
-                                  error
-                                  id="standard-weight-helper-text-address"
-                                >
-                                  {errors.address}
-                                </FormHelperText>
-                              )}
-                            </Grid>
-
-                            {/* URL Field */}
-                            <Grid item xs={12} md={12} lg={12}>
-                              <InputLabel
-                                htmlFor="website-url"
-                                sx={{ marginBottom: 1 }}
-                              >
-                                Website Url
-                              </InputLabel>
-                              <TextField
-                                id="url"
-                                type="text"
-                                value={values.url}
-                                name="url"
-                                onBlur={handleBlur}
-                                onChange={handleChange}
-                                placeholder="https://www.example.com"
-                                fullWidth
-                                error={Boolean(touched.url && errors.url)}
-                                helperText={
-                                  touched.url && errors.url ? errors.url : ""
-                                }
-                              />
-                            </Grid>
-                          </Grid>
-                        </Card>
-                      </Grid>
-
-                      {/* Submit Button */}
-                      <Grid item xs={12}>
-                        <Button
-                          disableElevation
-                          disabled={isSubmitting}
-                          size="large"
-                          type="submit"
-                          variant="contained"
-                          color="primary"
-                        >
-                          Submit
-                        </Button>
-                        {errors.submit && (
-                          <FormHelperText error>{errors.submit}</FormHelperText>
-                        )}
-                      </Grid>
-                    </Grid>
-                  </form>
-                )}
-              </Formik>
-            </Grid>
-          </Grid>
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={1}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Card variant="outlined">
-                <Stack sx={{ padding: "20px" }}>
-                  <Typography variant="subtitle1">Change Password</Typography>
-                </Stack>
-                <Divider />
-
-                <Formik
-                  initialValues={{
-                    oldPassword: "",
-                    newPassword: "",
-                    confirmPassword: "",
-                    submit: null,
-                  }}
-                  validationSchema={Yup.object().shape({
-                    oldPassword: Yup.string().required(
-                      "Old Password is required"
-                    ),
-                    newPassword: Yup.string()
-                      .min(8, "Password must be at least 8 characters")
-                      .matches(
-                        /[a-z]/,
-                        "Password must contain at least one lowercase letter"
-                      )
-                      .matches(
-                        /[A-Z]/,
-                        "Password must contain at least one uppercase letter"
-                      )
-                      .matches(
-                        /\d/,
-                        "Password must contain at least one number"
-                      )
-                      .matches(
-                        /[!@#$%^&*(),.?":{}|<>]/,
-                        "Password must contain at least one special character"
-                      )
-                      .required("Password is required"),
-                    confirmPassword: Yup.string()
-                      .oneOf([Yup.ref("newPassword")], "Passwords must match")
-                      .required("Confirm Password is required"),
-                  })}
-                  onSubmit={(values, { setSubmitting, setErrors }) => {
-                    console.log("Form Values:", values);
-
-                    setSubmitting(false);
-                  }}
-                >
-                  {({
-                    errors,
-                    handleBlur,
-                    handleChange,
-                    handleSubmit,
-                    isSubmitting,
-                    touched,
-                    values,
-                  }) => (
-                    <form noValidate onSubmit={handleSubmit}>
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={6} lg={6}>
-                          <Grid container spacing={3}>
-                            <Grid item xs={12}>
-                              <Stack spacing={1} sx={{ padding: "24px" }}>
-                                <InputLabel htmlFor="old-password">
-                                  Old Password
-                                </InputLabel>
-                                <OutlinedInput
-                                  id="old-password"
-                                  type={
-                                    showPassword.oldPassword
-                                      ? "text"
-                                      : "password"
-                                  }
-                                  value={values.oldPassword}
-                                  name="oldPassword"
-                                  onBlur={handleBlur}
-                                  onChange={handleChange}
-                                  placeholder="Enter old password"
-                                  fullWidth
-                                  error={Boolean(
-                                    touched.oldPassword && errors.oldPassword
-                                  )}
-                                  endAdornment={
-                                    <InputAdornment position="end">
-                                      <IconButton
-                                        aria-label="toggle password visibility"
-                                        onClick={() =>
-                                          setShowPassword((prev) => ({
-                                            ...prev,
-                                            ["oldPassword"]:
-                                              !prev["oldPassword"],
-                                          }))
-                                        }
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        edge="end"
-                                        color="secondary"
-                                      >
-                                        {showPassword.oldPassword ? (
-                                          <EyeOutlined />
-                                        ) : (
-                                          <EyeInvisibleOutlined />
-                                        )}
-                                      </IconButton>
-                                    </InputAdornment>
-                                  }
-                                />
-                                {touched.oldPassword && errors.oldPassword && (
-                                  <FormHelperText
-                                    error
-                                    id="standard-weight-helper-text-old-password"
-                                  >
-                                    {errors.oldPassword}
-                                  </FormHelperText>
-                                )}
-                              </Stack>
-                            </Grid>
-
-                            <Grid item xs={12}>
-                              <Stack spacing={1} sx={{ padding: "24px" }}>
-                                <InputLabel htmlFor="new-password">
-                                  New Password
-                                </InputLabel>
-                                <OutlinedInput
-                                  fullWidth
-                                  error={Boolean(
-                                    touched.newPassword && errors.newPassword
-                                  )}
-                                  id="new-password"
-                                  type={
-                                    showPassword.newPassword
-                                      ? "text"
-                                      : "password"
-                                  }
-                                  value={values.newPassword}
-                                  name="newPassword"
-                                  onBlur={handleBlur}
-                                  onChange={(e) => {
-                                    handleChange(e);
-                                    handlePasswordChange(e);
-                                  }}
-                                  endAdornment={
-                                    <InputAdornment position="end">
-                                      <IconButton
-                                        aria-label="toggle password visibility"
-                                        onClick={() =>
-                                          setShowPassword((prev) => ({
-                                            ...prev,
-                                            ["newPassword"]:
-                                              !prev["newPassword"],
-                                          }))
-                                        }
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        edge="end"
-                                        color="secondary"
-                                      >
-                                        {showPassword.newPassword ? (
-                                          <EyeOutlined />
-                                        ) : (
-                                          <EyeInvisibleOutlined />
-                                        )}
-                                      </IconButton>
-                                    </InputAdornment>
-                                  }
-                                  placeholder="Enter new password"
-                                />
-                                {touched.newPassword && errors.newPassword && (
-                                  <FormHelperText
-                                    error
-                                    id="standard-weight-helper-text-new-password"
-                                  >
-                                    {errors.newPassword}
-                                  </FormHelperText>
-                                )}
-                              </Stack>
-                            </Grid>
-
-                            <Grid item xs={12}>
-                              <Stack spacing={1} sx={{ padding: "24px" }}>
-                                <InputLabel htmlFor="confirm-password">
-                                  Confirm Password
-                                </InputLabel>
-                                <OutlinedInput
-                                  fullWidth
-                                  error={Boolean(
-                                    touched.confirmPassword &&
-                                      errors.confirmPassword
-                                  )}
-                                  id="confirm-password"
-                                  type={
-                                    showPassword.confirmPassword
-                                      ? "text"
-                                      : "password"
-                                  }
-                                  value={values.confirmPassword}
-                                  name="confirmPassword"
-                                  onBlur={handleBlur}
-                                  onChange={handleChange}
-                                  endAdornment={
-                                    <InputAdornment position="end">
-                                      <IconButton
-                                        aria-label="toggle password visibility"
-                                        onClick={() =>
-                                          setShowPassword((prev) => ({
-                                            ...prev,
-                                            ["confirmPassword"]:
-                                              !prev["confirmPassword"],
-                                          }))
-                                        }
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        edge="end"
-                                        color="secondary"
-                                      >
-                                        {showPassword.confirmPassword ? (
-                                          <EyeOutlined />
-                                        ) : (
-                                          <EyeInvisibleOutlined />
-                                        )}
-                                      </IconButton>
-                                    </InputAdornment>
-                                  }
-                                  placeholder="Confirm new password"
-                                />
-                                {touched.confirmPassword &&
-                                  errors.confirmPassword && (
-                                    <FormHelperText
-                                      error
-                                      id="standard-weight-helper-text-confirm-password"
-                                    >
-                                      {errors.confirmPassword}
-                                    </FormHelperText>
-                                  )}
-                              </Stack>
-                            </Grid>
-                          </Grid>
-                        </Grid>
-
-                        <Grid item xs={12} md={6} lg={6}>
-                          <Box sx={{ padding: "40px" }}>
-                            <Typography variant="h5">
-                              New Password must contain:
-                            </Typography>
-                            <List>
-                              <ListItemButton divider>
-                                <ListItemAvatar>
-                                  {passwordCriteria.minLength ? (
-                                    <DoneIcon color="success" />
-                                  ) : (
-                                    <RemoveIcon color="error" />
-                                  )}
-                                </ListItemAvatar>
-                                <ListItemText
-                                  primary={
-                                    <Typography variant="body1">
-                                      At least 8 characters
-                                    </Typography>
-                                  }
-                                />
-                              </ListItemButton>
-                              <ListItemButton divider>
-                                <ListItemAvatar>
-                                  {passwordCriteria.lowercase ? (
-                                    <DoneIcon color="success" />
-                                  ) : (
-                                    <RemoveIcon color="error" />
-                                  )}
-                                </ListItemAvatar>
-                                <ListItemText
-                                  primary={
-                                    <Typography variant="body1">
-                                      At least 1 lowercase letter (a-z)
-                                    </Typography>
-                                  }
-                                />
-                              </ListItemButton>
-                              <ListItemButton divider>
-                                <ListItemAvatar>
-                                  {passwordCriteria.uppercase ? (
-                                    <DoneIcon color="success" />
-                                  ) : (
-                                    <RemoveIcon color="error" />
-                                  )}
-                                </ListItemAvatar>
-                                <ListItemText
-                                  primary={
-                                    <Typography variant="body1">
-                                      At least 1 uppercase letter (A-Z)
-                                    </Typography>
-                                  }
-                                />
-                              </ListItemButton>
-                              <ListItemButton>
-                                <ListItemAvatar>
-                                  {passwordCriteria.number ? (
-                                    <DoneIcon color="success" />
-                                  ) : (
-                                    <RemoveIcon color="error" />
-                                  )}
-                                </ListItemAvatar>
-                                <ListItemText
-                                  primary={
-                                    <Typography variant="body1">
-                                      At least 1 number (0-9)
-                                    </Typography>
-                                  }
-                                />
-                              </ListItemButton>
-                              <ListItemButton>
-                                <ListItemAvatar>
-                                  {passwordCriteria.specialChar ? (
-                                    <DoneIcon color="success" />
-                                  ) : (
-                                    <RemoveIcon color="error" />
-                                  )}
-                                </ListItemAvatar>
-                                <ListItemText
-                                  primary={
-                                    <Typography variant="body1">
-                                      At least 1 special character
-                                    </Typography>
-                                  }
-                                />
-                              </ListItemButton>
-                            </List>
-                          </Box>
-                        </Grid>
-
-                        <Grid item xs={12}>
-                          <Stack
-                            direction="row"
-                            justifyContent="flex-end"
-                            alignItems="center"
-                          >
-                            <Button
-                              disableElevation
-                              disabled={isSubmitting}
-                              size="large"
-                              type="button"
-                              onClick={handleSubmit}
-                              variant="contained"
-                              color="primary"
-                            >
-                              Change Password
-                            </Button>
-                          </Stack>
-                        </Grid>
-                      </Grid>
-                    </form>
-                  )}
-                </Formik>
-              </Card>
-            </Grid>
-          </Grid>
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={2}>
-          <Member />
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={3}></CustomTabPanel>
-      </Box>
-    </MainCard>
+                <Tab
+                  icon={<PermIdentityOutlinedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="Profile"
+                  {...a11yProps(0)}
+                />
+                <Tab
+                  icon={<HttpsOutlinedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="Change Password"
+                  {...a11yProps(1)}
+                />
+                <Tab
+                  icon={<ApartmentIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="Hotel"
+                  {...a11yProps(2)}
+                />
+                <Tab
+                  icon={<RestaurantIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="Restaurant"
+                  {...a11yProps(3)}
+                />
+                <Tab
+                  icon={<BusinessIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="Business"
+                  {...a11yProps(4)}
+                />
+                <Tab
+                  icon={<SupervisorAccountOutlinedIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="Staff"
+                  {...a11yProps(5)}
+                />
+                <Tab
+                  icon={<SettingsIcon fontSize="small" />}
+                  iconPosition="start"
+                  label="Settings"
+                  {...a11yProps(6)}
+                />
+              </Tabs>
+            </Box>
+            <CustomTabPanel label="start" value={value} index={0}>
+              <PersonalInfo data={management.personalInfo} />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={1}>
+              <ChangePassword data={management.personalInfo.password} />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={2}>
+              <HotelInfo data={management.hotel} />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={3}>
+              <RestaurantInfo data={management.restaurant} />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={4}>
+              <BusinessInfo data={management.business} />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={5}>
+              <Member />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={6}>
+              <Settings />
+            </CustomTabPanel>
+            {/* <CustomTabPanel value={value} index={3}></CustomTabPanel> */}
+          </Box>
+        </MainCard>
+      )}
+    </>
   );
 }

@@ -2,7 +2,7 @@ export const publicRoutes = ["/test"];
 
 export const authRoutes = ["/login", "/register", "/reset"];
 
-export const onboardingRutes = ["/onboarding"];
+export const onboardingRoutes = ["/onboarding"];
 
 export const managerRoutes = [
   "/",

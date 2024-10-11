@@ -6,11 +6,11 @@ import {
   staffRoutes,
   managerRoutes, // Assuming manager routes exist=
   DEFAULT_LOGIN_REDIRECT,
-  onboardingRutes,
+  onboardingRoutes,
 } from "../routes";
 
 export default auth((req) => {
-  console.log("=============", req.auth);
+  // console.log("=============", req.auth);
   const { nextUrl } = req;
   const user = req.auth?.user;
   const isLoggedIn = !!req.auth;
@@ -19,7 +19,7 @@ export default auth((req) => {
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiauthPrefix);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-  const isOnboardingRoute = onboardingRutes.includes(nextUrl.pathname);
+  const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);
   const isStaffRoute = staffRoutes.includes(nextUrl.pathname);
   const isManagerRoute = managerRoutes.includes(nextUrl.pathname);
 
@@ -30,17 +30,17 @@ export default auth((req) => {
       return Response.redirect(new URL("/onboarding", nextUrl)); //checked
     }
     if (isLoggedIn) {
-      console.log("here1");
+      // console.log("here1");
       if (role === "admin") {
-        console.log("here2");
+        // console.log("here2");
         return Response.redirect(new URL("/", nextUrl)); // Admins can access the full app   // checked
       } else if (role === "staff") {
-        console.log("here3");
+        // console.log("here3");
         if (!isStaffRoute) {
           return Response.redirect(new URL("/staff", nextUrl)); // Staff restricted to staff routes //checked
         }
       } else if (role === "manager") {
-        console.log("here4");
+        // console.log("here4");
         if (!isManagerRoute) {
           return Response.redirect(new URL("/staff", nextUrl)); // Manager restricted to staff routes (same as staff in your case) //checked
         }

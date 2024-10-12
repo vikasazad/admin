@@ -25,7 +25,11 @@ declare module "next-auth" {
     phone?: string;
     businessName?: string;
     businessType?: string;
-    role?: string;
+    business: {
+      role?: string;
+      newUser: boolean;
+    };
+
     isverified?: string;
     canForgotPassword?: boolean;
     formattedNumber?: string;
@@ -47,7 +51,10 @@ declare module "next-auth" {
       phone?: string;
       businessName?: string;
       businessType?: string;
-      role?: string;
+      business: {
+        role?: string;
+        newUser: boolean;
+      };
       isverified?: string;
       canForgotPassword?: boolean;
       formattedNumber?: string;

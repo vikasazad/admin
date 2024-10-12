@@ -12,7 +12,7 @@ import {
 export default auth((req) => {
   console.log("=============", req.auth);
   const { nextUrl } = req;
-  const user = req.auth?.user as any;
+  const user = req.auth?.user;
   const isLoggedIn = !!req.auth;
   const newUser = user?.business.newUser;
   const role = user?.business.role;

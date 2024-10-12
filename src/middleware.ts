@@ -10,13 +10,13 @@ import {
 } from "../routes";
 
 export default auth((req) => {
-  // console.log("=============", req.auth);
+  console.log("=============", req.auth);
   const { nextUrl } = req;
-  const user = req.auth?.user;
+  const user = req.auth?.user as any;
   const isLoggedIn = !!req.auth;
-  const newUser = user?.newUser;
+  const newUser = user?.business.newUser;
   const role = user?.business.role;
-  console.log("ROLEROLE", role);
+  console.log("ROLEROLE", newUser, role);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiauthPrefix);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);

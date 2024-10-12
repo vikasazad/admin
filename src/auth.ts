@@ -54,6 +54,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (findEmail.email === existingUser.personalInfo.contactInfo.email) {
             console.log("COMPARING");
             if (await compare(password, existingUser.personalInfo.password)) {
+              console.log("password", password);
+              console.log("existingUser", existingUser.personalInfo.password);
               console.log("AUTHENTICATIG");
               return existingUser; // Return admin user if password matches
             }

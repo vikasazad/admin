@@ -15,7 +15,8 @@ export default auth((req) => {
   const user = req.auth?.user;
   const isLoggedIn = !!req.auth;
   const newUser = user?.newUser;
-  const role = user?.role;
+  const role = user?.business.role;
+  console.log("ROLEROLE", role);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiauthPrefix);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);

@@ -14,8 +14,8 @@ export default auth((req) => {
   const { nextUrl } = req;
   const user = req.auth?.user;
   const isLoggedIn = !!req.auth;
-  const newUser = user?.business.newUser;
-  const role = user?.business.role;
+  const newUser = user?.newUser;
+  const role = user?.role;
   console.log("ROLEROLE", newUser, role);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiauthPrefix);
@@ -31,9 +31,9 @@ export default auth((req) => {
       return Response.redirect(new URL("/onboarding", nextUrl)); //checked
     }
     if (isLoggedIn) {
-      // console.log("here1");
+      console.log("here1");
       if (role === "admin") {
-        // console.log("here2");
+        console.log("here2");
         return Response.redirect(new URL("/", nextUrl)); // Admins can access the full app   // checked
       } else if (role === "staff") {
         // console.log("here3");

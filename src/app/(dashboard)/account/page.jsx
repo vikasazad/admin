@@ -75,7 +75,7 @@ function a11yProps(index) {
 export default function Account() {
   const dispatch = useDispatch();
   const { data: session, status } = useSession();
-  const user = session?.user?.personalInfo.contactInfo;
+  const user = session?.user;
   const info = useSelector((state) => state.firebaseManagementData);
   const [value, setValue] = React.useState(0);
   const [management, setManagement] = useState(null);

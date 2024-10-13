@@ -43,7 +43,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (findEmail.type === "normal") {
           console.log("INTHENORMAL");
           const existingUser = await findUserByEmail(findEmail.email);
-          console.log("existingUser", existingUser);
+          // console.log("existingUser", existingUser);
           if (!existingUser || !existingUser.personalInfo.password) {
             // return {
             //   error: true,
@@ -54,10 +54,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (findEmail.email === existingUser.personalInfo.contactInfo.email) {
             console.log("COMPARING");
             if (await compare(password, existingUser.personalInfo.password)) {
-              console.log("password", password);
-              console.log("existingUser", existingUser.personalInfo.password);
+              // console.log("password", password);
+              // console.log("existingUser", existingUser.personalInfo.password);
               console.log("AUTHENTICATIG");
-              return existingUser; // Return admin user if password matches
+              let newUser: any;
+              if (existingUser) {
+                newUser = {
+                  id: existingUser.personalInfo.contactInfo.email,
+                  email: existingUser.personalInfo.contactInfo.email,
+                  password: existingUser.personalInfo.password,
+                  image: existingUser.business.image,
+                  role: existingUser.business.role,
+                  newUser: existingUser.business.newUser,
+                  isverified: existingUser.business.isverified,
+                  canForgotPassword: existingUser.business.canForgotPassword,
+                  staff: existingUser.staff,
+                };
+
+                return newUser;
+              } // Return admin user if password matches
             }
             // throw new CredentialsSignin({
             //   cause: "Password is incorrect",
@@ -103,16 +118,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (account?.provider === "google") {
         try {
           const findUser = await findUserByEmail(user.email);
+          console.log("herejerejetrejeyejeyejeyejeyejy1", findUser);
           if (findUser) {
-            user.password = findUser.password ?? "";
-            user.countryCode = findUser.countryCode;
-            user.phone = findUser.phone;
-            user.businessName = findUser.businessName;
-            user.businessType = findUser.businessType;
-            // user.role = findUser.role;
-            user.isverified = findUser.isverified;
-            user.canForgotPassword = findUser.canForgotPassword;
-            user.formattedNumber = findUser.formattedNumber;
+            user.password = "";
+            user.role = findUser.business.role;
+            user.isverified = findUser.business.isverified;
+            user.canForgotPassword = findUser.business.canForgotPassword;
             user.staff = findUser.staff;
           }
           user.newUser = !findUser;
@@ -121,11 +132,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return false; // Stop sign-in if there's an error
         }
       }
+
       return true;
     },
 
     session: async ({ token, session }) => {
       if (token.sub && session.user) {
+        console.log("here2");
+        console.log("herejerejetrejeyejeyejeyejeyejy2", session);
         session.user = { ...session.user, ...token };
       }
       return session;
@@ -133,6 +147,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     jwt: async ({ token, user, trigger, session }) => {
       if (user) {
+        console.log("here3");
+        console.log("herejerejetrejeyejeyejeyejeyejy3", token, user);
         token = { ...token, ...user };
       }
       if (trigger === "update") {
@@ -140,6 +156,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         console.log("Look its running");
         return { ...token, ...session.user };
       }
+
       return token;
     },
   },

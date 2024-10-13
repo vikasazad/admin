@@ -8,8 +8,8 @@ import Box from "@mui/material/Box";
 export default function AuthBackground() {
   const theme = useTheme();
   return (
-    <Box
-      sx={{
+    <div
+      style={{
         position: "absolute",
         filter: "blur(18px)",
         zIndex: -1,
@@ -39,6 +39,6 @@ export default function AuthBackground() {
           opacity={"1"}
         />
       </svg>
-    </Box>
+    </div>
   );
 }

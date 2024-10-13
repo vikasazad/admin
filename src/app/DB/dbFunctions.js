@@ -32,7 +32,7 @@ export async function registerUserEmail(email, token) {
 
 export async function registerUser(email, newUser) {
   try {
-    await setDoc(doc(db, email, "hotel"), {
+    await setDoc(doc(db, email, "info"), {
       //setdoc is to create if not or if exists then overwrite // to add new sub-collection this function can be used
       ...newUser,
     });
@@ -69,7 +69,7 @@ export async function getData(email, subCollection) {
 }
 export async function getRoomData() {
   const session = await auth();
-  const user = session?.user?.personalInfo.contactInfo.email;
+  const user = session?.user?.email;
   try {
     const docRef = doc(db, user, "hotel");
     const docSnap = await getDoc(docRef);
@@ -137,7 +137,7 @@ export async function getRoomData() {
 }
 export async function getTableData() {
   const session = await auth();
-  const user = session?.user?.personalInfo.contactInfo.email;
+  const user = session?.user?.email;
   try {
     const docRef = doc(db, user, "restaurant");
     const docSnap = await getDoc(docRef);
@@ -379,7 +379,7 @@ export async function handleRoomInformation(email) {
 }
 export async function handleRoomStaffInformation(email) {
   const session = await auth();
-  const user = session?.user?.personalInfo.contactInfo.email;
+  const user = session?.user?.email;
   try {
     const docRefHotel = doc(db, user, "hotel");
     const docRefRestaurant = doc(db, user, "restaurant");

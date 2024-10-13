@@ -571,7 +571,7 @@ import { useSession } from "next-auth/react";
 
 export default function RoomInfo() {
   const { data: session, status } = useSession();
-  const user = session?.user?.personalInfo.contactInfo;
+  const user = session?.user;
   const dispatch = useDispatch();
   const info = useSelector((state) => state.firestoreMultipleData);
   const [value, setValue] = useState(0);

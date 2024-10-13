@@ -2913,7 +2913,7 @@ const managementData = {
   business: {
     id: "info@luxestayhospitality.com",
     businessName: "LuxeStay Hospitality Group",
-    businessType: "Accommodation",
+    businessType: "                                                        ",
     role: "admin",
     isVerified: true,
     canForgotPassword: true,
@@ -2936,6 +2936,7 @@ const managementData = {
       contact: "+1-310-555-5678",
       newUser: "false",
       status: "online",
+      canForgotPassword: false,
       shiftDetails: {
         start: JSON.stringify(new Date("2023-09-25T09:00:00")),
         end: JSON.stringify(new Date("2023-09-25T17:00:00")),
@@ -2949,6 +2950,7 @@ const managementData = {
       contact: "+1-310-555-8765",
       newUser: "false",
       status: "offline",
+      canForgotPassword: false,
       shiftDetails: {
         start: JSON.stringify(new Date("2023-09-25T15:00:00")),
         end: JSON.stringify(new Date("2023-09-25T23:00:00")),
@@ -2962,6 +2964,7 @@ const managementData = {
       contact: "+1-310-555-4321",
       newUser: "false",
       status: "online",
+      canForgotPassword: false,
       shiftDetails: {
         start: JSON.stringify(new Date("2023-09-25T07:00:00")),
         end: JSON.stringify(new Date("2023-09-25T15:00:00")),

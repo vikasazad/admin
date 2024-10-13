@@ -42,7 +42,7 @@ export async function LoginAuth(LoginData) {
 
   if (findUser.type === "normal") {
     const existingUser = await findUserByEmail(findUser.email);
-    console.log("existingUser", existingUser);
+    // console.log("existingUser", existingUser);
     if (!existingUser) {
       return {
         error: true,

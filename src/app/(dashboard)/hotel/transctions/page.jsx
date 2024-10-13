@@ -180,7 +180,7 @@ function EnhancedTableHead(props) {
 
 export default function HotelTransction() {
   const { data: session, status } = useSession();
-  const user = session?.user?.personalInfo.contactInfo;
+  const user = session?.user;
   const dispatch = useDispatch();
   const info = useSelector((state) => state.firestoreMultipleData);
   const [transction, setTransction] = React.useState(null);

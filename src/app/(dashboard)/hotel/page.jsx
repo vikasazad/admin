@@ -62,7 +62,7 @@ function getStyles(data, amenities, theme) {
 export default function HotelInfo() {
   const dispatch = useDispatch();
   const { data: session, status } = useSession();
-  const user = session?.user?.personalInfo.contactInfo;
+  const user = session?.user;
   const theme = useTheme();
   const router = useRouter();
   const uploadRestaurantImageInputRef = useRef(null);

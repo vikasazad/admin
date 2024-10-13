@@ -19,7 +19,7 @@ export default function List() {
   const dispatch = useDispatch();
   const router = useRouter();
   const { data: session, status } = useSession();
-  const user = session?.user?.personalInfo.contactInfo;
+  const user = session?.user;
   const menuData = useSelector((state) => state.firestoreMultipleData);
   const [categoriesList, setCategoriesList] = useState([]);
   const [showCheckbox, setShowCheckBox] = useState(false);

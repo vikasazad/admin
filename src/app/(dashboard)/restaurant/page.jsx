@@ -38,7 +38,7 @@ import { useSession } from "next-auth/react";
 export default function RestaurantInfo() {
   const dispatch = useDispatch();
   const { data: session, status } = useSession();
-  const user = session?.user?.personalInfo.contactInfo;
+  const user = session?.user;
   const tableData = useSelector((state) => state.firestoreMultipleData);
   const [tables, setTables] = useState();
   const [errors, setErrors] = useState({

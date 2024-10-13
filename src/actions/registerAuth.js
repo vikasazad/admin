@@ -3,6 +3,7 @@
 import { hash } from "bcryptjs";
 import { generateVerificationToken } from "../app/utils/tokens";
 import { findUserByEmail, registerUser } from "../app/DB/dbFunctions";
+import { countriesList } from "../app/assets/countriesData";
 
 export async function authEmailOtp(email) {
   const verificationToken = await generateVerificationToken(email); //checked returning verification token
@@ -13,6 +14,12 @@ export async function authEmailOtp(email) {
 }
 
 export async function saveUser(UserData) {
+  const countryName = () => {
+    const name = countriesList.find(
+      (item) => item.phone === UserData.countryCode || ""
+    );
+    return name?.label;
+  };
   const firstname = UserData.firstname;
   const lastname = UserData.lastname;
   const email = UserData.email;
@@ -37,20 +44,37 @@ export async function saveUser(UserData) {
   }
   const hashedPassword = await hash(password, 8);
   const newUser = {
-    id: email,
-    name: `${firstname} ${lastname}`,
-    email: email,
-    password: hashedPassword,
-    countryCode: countryCode,
-    phone: phone,
-    businessName: businessName,
-    businessType: businessType,
-    role: "admin",
-    isverified: JSON.stringify(new Date()),
-    canForgotPassword: true,
-    formattedNumber: formattedNumber,
-    image: "",
-    newUser: false,
+    personalInfo: {
+      ownerName: `${firstname} ${lastname}`,
+      country: "",
+      zipCode: "",
+      contactInfo: {
+        countryCode: countryCode,
+        phoneNumber: phone,
+        email: email,
+      },
+      address: "",
+      password: hashedPassword,
+    },
+    hotel: {},
+    restaurant: {},
+    business: {
+      id: email,
+      businessName: businessName,
+      businessType: businessType,
+      role: "admin",
+      isVerified: JSON.stringify(new Date()),
+      canForgotPassword: true,
+      formattedNumber: formattedNumber,
+      image: "",
+      newUser: false,
+      gst: "",
+      countryCode: countryCode,
+      phone: "",
+      email: "",
+      password: "",
+      panNo: "",
+    },
     staff: [],
   };
 
@@ -99,20 +123,37 @@ export async function registerSocialUser(user) {
   }
 
   const newUser = {
-    id: email,
-    name: name,
-    email: email,
-    password: "",
-    countryCode: countryCode,
-    phone: phone,
-    businessName: businessName,
-    businessType: businessType,
-    role: role,
-    isverified: JSON.stringify(new Date()),
-    canForgotPassword: true,
-    formattedNumber: formattedNumber,
-    image: image,
-    newUser: false,
+    personalInfo: {
+      ownerName: `${firstname} ${lastname}`,
+      country: "",
+      zipCode: "",
+      contactInfo: {
+        countryCode: countryCode,
+        phoneNumber: phone,
+        email: email,
+      },
+      address: "",
+      password: "",
+    },
+    hotel: {},
+    restaurant: {},
+    business: {
+      id: email,
+      businessName: businessName,
+      businessType: businessType,
+      role: "admin",
+      isVerified: JSON.stringify(new Date()),
+      canForgotPassword: true,
+      formattedNumber: formattedNumber,
+      image: "",
+      newUser: false,
+      gst: "",
+      countryCode: countryCode,
+      phone: "",
+      email: "",
+      password: "",
+      panNo: "",
+    },
     staff: [],
   };
 
